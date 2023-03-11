@@ -51,8 +51,6 @@ export class GoodManStack extends Stack {
 
         const accountId = Stack.of(this).account
 
-
-
         const apiDomain = process.env.AWS_DOMAIN!
 
         const codeAsset = Code.fromAsset('dist')
@@ -73,6 +71,9 @@ export class GoodManStack extends Stack {
 
         // DynamoDB
         const instanceStateTable = new InstanceStateTable(this, 'AWSTable')
+
+        // S3
+        const s3Storage = new S3Storage(this, 'AWSS3')
 
         // Roles
         const roles = new Roles(this, 'AWSLambdaRole')

@@ -7,10 +7,9 @@ import { upsertProductInput } from './models'
 import { Response } from '../../helpers/response'
 
 const client = new DynamoDBClient({})
-
 const dynamo = DynamoDBDocumentClient.from(client)
 
-const upsertProduct = async (event: APIGatewayProxyEventV2) => {
+export const upsertProduct = async (event: APIGatewayProxyEventV2) => {
     const _input = upsertProductInput.safeParse(JSON.parse(event.body || '{}'))
 
     if (_input.success === false) {
@@ -21,7 +20,6 @@ const upsertProduct = async (event: APIGatewayProxyEventV2) => {
         })
     }
 
-    const { id } = _input.data
     const dynamoReq = await dynamo.send(
         new PutCommand({
             TableName: PRODUCTS_TABLE,

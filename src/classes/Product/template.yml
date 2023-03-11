@@ -1,3 +1,5 @@
 methods:
+  - method: upsertProduct
+    handler: product.upsertProduct
 
 
