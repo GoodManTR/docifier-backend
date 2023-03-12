@@ -15,6 +15,7 @@ export class LambdaStack extends Construct {
         handler: 'api.handler',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(45),
+        memorySize: 1769,
         role,
         layers: [layer],
         environment: {

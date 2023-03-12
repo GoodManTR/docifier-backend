@@ -107,9 +107,9 @@ export class GoodManStack extends Stack {
         // *******************************
         // *******************************
 
-        new HttpRoute(this, 'COSApiProxyRoute_' + HttpMethod.POST, {
+        new HttpRoute(this, 'COSApiProxyRoute_' + HttpMethod.ANY, {
             httpApi: api,
-            routeKey: HttpRouteKey.with('/{proxy+}', HttpMethod.POST),
+            routeKey: HttpRouteKey.with('/{proxy+}', HttpMethod.ANY),
             integration: new HttpLambdaIntegration('proxyInegration', functions.apiHandlerLambda, {
                 payloadFormatVersion: PayloadFormatVersion.custom('2.0'),
             }),

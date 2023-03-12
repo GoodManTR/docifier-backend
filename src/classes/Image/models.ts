@@ -1,12 +1,10 @@
 import { z } from "zod"
 
-const imageType = z.enum(['product', 'badge', 'category', 'banner', 'icon']).optional()
 const imageId = z.string().regex(/^[\dA-Za-z-]{5,50}$/)
 
 export const uploadInput = z.object({
   content: z.string(),
-  imageType,
-  name: z.string().optional(),
+  name: z.string(),
   imageId: imageId.optional(),
 })
 
@@ -22,6 +20,12 @@ export const parsedPath = z.object({
 })
 
 export type ParsedPath = z.infer<typeof parsedPath>
+
+export const removeImageInput = z.object({
+  imageId: z.string()
+})
+
+export type RemoveImageInput = z.infer<typeof removeImageInput>
 
 export const getImageInput = z.object({
     id: z.string(),

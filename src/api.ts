@@ -2,6 +2,7 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
+import { Response } from './helpers/response'
 
 interface Method {
     methods: [
@@ -39,11 +40,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         // Get the function dynamically using the `handler` property
         const handler = requiredModule[methodName]
         return await handler(event)
-    } catch (e) {
-        console.log(e)
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ router_error: (e as Error).message }),
-        }
+    } catch (error) {
+        return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
     }
 }

@@ -1,3 +1,9 @@
 methods:
   - method: upload
     handler: image.upload
+
+  - method: remove
+    handler: image.remove
+
+  - method: get
+    handler: image.get

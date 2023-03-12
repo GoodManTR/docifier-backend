@@ -9,17 +9,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.154.0",
-    "@aws-sdk/lib-dynamodb": "3.154.0",
+    "@aws-sdk/client-dynamodb": "3.289.0",
+    "@aws-sdk/lib-dynamodb": "3.289.0",
+    "@aws-sdk/client-s3": "3.289.0",
     "jsonwebtoken": "8.5.1",
     "uuid": "9.0.0",
     "zod": "3.20.6",
     "js-yaml": "4.1.0",
-    "nanoid": "4.0.1",
-    "sharp": "0.31.3"
+    "nanoid": "3.2.0",
+    "jimp": "0.22.7"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.5",
-    "@types/sharp": "0.31.1"
+    "@types/js-yaml": "^4.0.5"
   }
 }
