@@ -1,6 +1,5 @@
 import { ParsedPath, ResizedImageParameters, removeImageInput, resizedImageParameters, uploadInput } from './models'
 import { Response } from '../../helpers/response'
-import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { customAlphabet } from 'nanoid'
 import { gunzipSync, gzipSync } from 'zlib'
 import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
@@ -8,6 +7,7 @@ import { IMAGE_BUCKET, IMAGE_TABLE } from '../../helpers/constants'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { deleteFile, getFile, uplaodFile } from '../../helpers/s3'
 import * as Jimp from 'jimp'
+import { Context } from '../../models'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -58,11 +58,11 @@ const parsePath = (path: string): ParsedPath => {
 // *******************************
 // *******************************
 
-export const get = async (event: APIGatewayProxyEventV2) => {
+export const get = async (context: Context) => {
     try {
         let cacheDuration = 31_536_000
 
-        const p = event.rawPath.split('/')[3]
+        const p = context.path
 
         if (!p) {
             throw new Response({
@@ -109,9 +109,9 @@ export const get = async (event: APIGatewayProxyEventV2) => {
     }
 }
 
-export const remove = async (event: APIGatewayProxyEventV2) => {
+export const remove = async (context: Context) => {
     try {
-        const input = removeImageInput.safeParse(JSON.parse(event.body || '{}'))
+        const input = removeImageInput.safeParse(context.body)
 
         if (input.success === false) {
             throw new Response({
@@ -144,9 +144,9 @@ export const remove = async (event: APIGatewayProxyEventV2) => {
     }
 }
 
-export const upload = async (event: APIGatewayProxyEventV2) => {
+export const upload = async (context: Context) => {
     try {
-        const input = uploadInput.safeParse(JSON.parse(event.body || '{}'))
+        const input = uploadInput.safeParse(context.body)
 
         if (input.success === false) {
             throw new Response({

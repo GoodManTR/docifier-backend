@@ -3,8 +3,9 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { Response } from './helpers/response'
-
-interface Method {
+import { createContext } from './helpers/context'
+interface Template {
+    authorizer: string
     methods: [
         {
             method: string
@@ -18,15 +19,32 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         const params = event.pathParameters?.proxy?.split('/') || []
         if (params.length < 2) throw new Error('Router http handler recived invalid path parameters')
 
+        const context = createContext(event)
+
         const classId = params[0]
         const reqMethod = params[1]
 
         const templateFile = `classes/${classId}/template.yml`
 
         const fileContents = fs.readFileSync(templateFile, 'utf8')
-        const methodTemplate = (await yaml.load(fileContents)) as Method
+        const templateContent = (await yaml.load(fileContents)) as Template
 
-        const method = methodTemplate.methods.find((m) => m.method === reqMethod)
+        // Authorizer
+        const authorizerFile = templateContent.authorizer.split('.')[0]
+        const authorizerMethod = templateContent.authorizer.split('.')[1]
+
+        const authorizerModulePath = path.join(__dirname, 'classes', classId, `${authorizerFile}.js`);
+        const authorizerRequiredModule = require(authorizerModulePath)
+
+        const authorizerHandler = authorizerRequiredModule[authorizerMethod]
+        const authorizerResponse = await authorizerHandler(context)
+        
+        if (authorizerResponse.statusCode !== 200) {
+            return authorizerResponse
+        }
+
+        // Method
+        const method = templateContent.methods.find((m) => m.method === reqMethod)
         if (!method) {
             throw new Error('404 - Couldnt find method!')
         }
@@ -38,8 +56,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         const requiredModule = require(modulePath)
         
         // Get the function dynamically using the `handler` property
-        const handler = requiredModule[methodName]
-        return await handler(event)
+        const methodHandler = requiredModule[methodName]
+        return await methodHandler(context)
     } catch (error) {
         return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
     }

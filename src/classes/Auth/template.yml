@@ -1,3 +1,4 @@
+authorizer: index.authorizer
 methods:
   - method: signUp
     handler: authentication.signUp

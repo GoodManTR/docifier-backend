@@ -1,3 +1,4 @@
+authorizer: index.authorizer
 methods:
   - method: upload
     handler: image.upload

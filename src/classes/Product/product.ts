@@ -1,16 +1,15 @@
-import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import { PRODUCTS_TABLE } from '../../helpers/constants'
-import { tokenMetaData } from '../Auth/types'
 import { upsertProductInput } from './models'
 import { Response } from '../../helpers/response'
+import { Context } from '../../models'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 
-export const upsertProduct = async (event: APIGatewayProxyEventV2) => {
-    const _input = upsertProductInput.safeParse(JSON.parse(event.body || '{}'))
+export const upsertProduct = async (context: Context) => {
+    const _input = upsertProductInput.safeParse(context.body)
 
     if (_input.success === false) {
         throw new Response({

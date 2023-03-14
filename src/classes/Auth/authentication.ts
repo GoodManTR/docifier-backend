@@ -2,12 +2,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
 import { USER_TABLE } from '../../helpers/constants'
 import { ExaminatorResponse, Response } from '../../helpers/response'
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import { UserMetaData } from './types'
 import { createSession, terminateSession } from './authorization'
 import { encodePassword } from './utils'
 import { registerInput, signInInput, signOutInput } from './models'
 import { v4 as uuidv4 } from 'uuid';
+import { Context } from '../../models'
 
 const client = new DynamoDBClient({})
 
@@ -19,9 +19,9 @@ const dynamo = DynamoDBDocumentClient.from(client)
 // *******************************
 // *******************************
 
-export async function signUp (event: APIGatewayProxyEventV2, context: Context): Promise<ExaminatorResponse> {
+export async function signUp (context: Context): Promise<ExaminatorResponse> {
   try {
-    const _input = registerInput.safeParse(JSON.parse(event.body || '{}'))
+    const _input = registerInput.safeParse(context.body)
 
     if (_input.success === false) {
       throw new Response({ statusCode: 400, message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.', addons: { issues: _input.error.issues } })
@@ -62,7 +62,7 @@ export async function signUp (event: APIGatewayProxyEventV2, context: Context): 
       throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoReq } })
     }
 
-    const session = await createSession({ userId: user.id, userType: user.type }, event.requestContext.http.sourceIp)
+    const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
 
     return new Response({ statusCode: 200, body: session }).response
   } catch (error) {
@@ -70,9 +70,9 @@ export async function signUp (event: APIGatewayProxyEventV2, context: Context): 
   }
 }
 
-export const signIn = async (event: APIGatewayProxyEventV2, context: Context): Promise<ExaminatorResponse> => {
+export const signIn = async (context: Context): Promise<ExaminatorResponse> => {
     try {
-      const _input = signInInput.safeParse(JSON.parse(event.body || '{}'))
+      const _input = signInInput.safeParse(context.body)
   
       if (_input.success === false) {
         throw new Response({ statusCode: 400, message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',  addons: { issues: _input.error.issues } })
@@ -95,7 +95,7 @@ export const signIn = async (event: APIGatewayProxyEventV2, context: Context): P
   
       const user = dynamoReq.Item as UserMetaData
   
-      const session = await createSession({ userId: user.id, userType: user.type }, event.requestContext.http.sourceIp)
+      const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
   
       return new Response({ statusCode: 200, body: session }).response
     } catch (error) {
@@ -103,15 +103,15 @@ export const signIn = async (event: APIGatewayProxyEventV2, context: Context): P
     }
   }
 
-  export const signOut = async (event: APIGatewayProxyEventV2, context: Context): Promise<ExaminatorResponse> => {
+  export const signOut = async (context: Context): Promise<ExaminatorResponse> => {
     try {
-      const _input = signOutInput.safeParse(JSON.parse(event.body || '{}'))
+      const _input = signOutInput.safeParse(context.body)
   
       if (_input.success === false) {
         throw new Response({ statusCode: 400, message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',  addons: { issues: _input.error.issues } })
       }
   
-      const _token = event.headers['_token']
+      const _token = context.headers['_token']
   
       const res = await terminateSession(_token!, _input.data.userId)
   

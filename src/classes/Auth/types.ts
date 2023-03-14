@@ -1,6 +1,16 @@
 import { z } from 'zod'
 
-export const userType = z.enum(['admin', 'enduser'])
+export const allowedMethods = z.enum([
+    'signUp',
+    'signIn'
+])
+
+export const enduserAllowedMethods = z.enum([
+    'signOut',
+    'refreshToken'
+])
+
+export const userType = z.enum(['admin', 'enduser', 'none'])
 
 export const user = z.object({
     email: z.string().email(),

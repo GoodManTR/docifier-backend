@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteComm
 
 import { TokenMetaData, ValidateTokenResponse, tokenMetaData } from './types'
 import { ExaminatorResponse, Response } from '../../helpers/response'
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
+import { Context } from '../../models'
 
 const { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET } = process.env
 const ACCESS_TOKEN_TTL = 300
@@ -121,10 +121,10 @@ export const validateToken = (token: string, secret: string): ValidateTokenRespo
   // *******************************
   
   
-  export const refreshToken = async (event: APIGatewayProxyEventV2, context: Context): Promise<ExaminatorResponse> => {
+  export const refreshToken = async (context: Context): Promise<ExaminatorResponse> => {
     try {
-      const _token = event.headers['_token'] // refresh token
-      const reqIP = event.requestContext.http.sourceIp
+      const _token = context.headers['_token'] // refresh token
+      const reqIP = context.sourceIp
   
       const tokenMetaData = await validateSessionToken(_token!, REFRESH_TOKEN_SECRET!)
       
