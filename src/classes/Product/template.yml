@@ -3,4 +3,10 @@ methods:
   - method: upsertProduct
     handler: product.upsertProduct
 
+  - method: search
+    handler: search.search
+
+  - method: aggregate
+    handler: search.aggregate
+
 

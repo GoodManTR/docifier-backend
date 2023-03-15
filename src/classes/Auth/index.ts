@@ -2,7 +2,8 @@ import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
 import { Response } from '../../helpers/response'
 import { authorizerCacheTime } from "../../helpers/cache-ages";
 import { Context } from "../../models";
-import { allowedMethods } from "./types";
+import { allowedMethods, enduserAllowedMethods, methods } from "./types";
+import { userTypes } from "../../types";
 
 const unauthorizedResponse = new Response({
     statusCode: 403,
@@ -18,7 +19,15 @@ const authorizedResponse = new Response({
 }).response
 
 export const authorizer = async (context: Context) => {
-    const { methodName } = context
+    const  { methodName, identity } = context
 
-    return authorizedResponse
+    if (allowedMethods.enum[methodName]) return authorizedResponse
+    if (enduserAllowedMethods.enum[methodName] && identity === userTypes.Enum.enduser) {
+        return authorizedResponse
+    }
+    if (methods.enum[methodName] && identity === userTypes.Enum.admin) {
+        return authorizedResponse
+    }
+
+    return unauthorizedResponse
 }

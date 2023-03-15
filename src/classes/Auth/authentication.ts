@@ -27,7 +27,7 @@ export async function signUp (context: Context): Promise<ExaminatorResponse> {
       throw new Response({ statusCode: 400, message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.', addons: { issues: _input.error.issues } })
     }
 
-    const { email, password, userType } = _input.data
+    const { email, password, userTypes } = _input.data
 
     const checkExistingUser = await dynamo.send(
       new GetCommand({
@@ -45,7 +45,7 @@ export async function signUp (context: Context): Promise<ExaminatorResponse> {
     const newId = uuidv4().replace(/-/g, '')
 
     const user: UserMetaData = {
-      type: userType,
+      type: userTypes,
       email,
       id: newId,
       password: encodePassword(password),

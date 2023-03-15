@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import { userType } from './types'
+import { userTypes } from '../../types'
+
 
 export const registerInput = z.object({
   email: z.string().email(),
   password: z.string(),
-  userType,
+  userTypes,
 })
 
 export const signInInput = z.object({

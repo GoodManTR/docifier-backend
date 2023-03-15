@@ -1,4 +1,12 @@
 import { z } from 'zod'
+import { userTypes } from '../../types'
+
+export const methods = z.enum([
+    'signUp',
+    'signIn',
+    'signOut',
+    'refreshToken'
+])
 
 export const allowedMethods = z.enum([
     'signUp',
@@ -10,18 +18,16 @@ export const enduserAllowedMethods = z.enum([
     'refreshToken'
 ])
 
-export const userType = z.enum(['admin', 'enduser', 'none'])
-
 export const user = z.object({
     email: z.string().email(),
     password: z.string(),
-    type: userType,
+    type: userTypes,
     id: z.string(),
 })
 export type UserMetaData = z.infer<typeof user>
 
 export const tokenMetaData = z.object({
-    userType: userType,
+    userType: userTypes,
     userId: z.string(),
     IP: z.string(),
 })
@@ -35,7 +41,7 @@ export type ValidateTokenResponse = z.infer<typeof validateTokenResponse>
 
 export const verifyRes = z.object({
     email: z.string().email(),
-    type: userType,
+    type: userTypes,
     id: z.string(),
     IP: z.string(),
     iat: z.number(),
