@@ -2,7 +2,7 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { Response } from './helpers/response'
+import { CustomError, Errors, SuccessResponse } from './helpers'
 import { createContext } from './helpers/context'
 interface Template {
     authorizer: string
@@ -17,8 +17,7 @@ interface Template {
 export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
     try {
         const params = event.pathParameters?.proxy?.split('/') || []
-        if (params.length < 2) throw new Error('Router http handler recived invalid path parameters')
-
+        if (params.length < 2) throw new CustomError({ error: Errors.Api[5001] })
         const context = createContext(event)
 
         const classId = params[0]
@@ -37,6 +36,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         const authorizerRequiredModule = require(authorizerModulePath)
 
         const authorizerHandler = authorizerRequiredModule[authorizerMethod]
+
         const authorizerResponse = await authorizerHandler(context)
         
         if (authorizerResponse.statusCode !== 200) {
@@ -46,11 +46,11 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         // Method
         const method = templateContent.methods.find((m) => m.method === reqMethod)
         if (!method) {
-            throw new Error('404 - Couldnt find method!')
+            throw new CustomError({ error: Errors.Api[5002] })
         }
 
-        const handlerFile = method.handler.split('.')[0]
-        const methodName = method.handler.split('.')[1]
+        const handlerFile = method!.handler.split('.')[0]
+        const methodName = method!.handler.split('.')[1]
 
         const modulePath = path.join(__dirname, 'classes', classId, `${handlerFile}.js`);
         const requiredModule = require(modulePath)
@@ -59,6 +59,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         const methodHandler = requiredModule[methodName]
         return await methodHandler(context)
     } catch (error) {
-        return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
+        return error instanceof CustomError
+            ? error.friendlyResponse
+            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
 }

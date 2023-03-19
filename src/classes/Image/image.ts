@@ -1,5 +1,5 @@
 import { ParsedPath, ResizedImageParameters, removeImageInput, resizedImageParameters, uploadInput } from './models'
-import { Response } from '../../helpers/response'
+import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { customAlphabet } from 'nanoid'
 import { gunzipSync, gzipSync } from 'zlib'
 import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
@@ -65,10 +65,7 @@ export const get = async (context: Context) => {
         const p = context.path
 
         if (!p) {
-            throw new Response({
-                statusCode: 400,
-                message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',
-            })
+            throw new CustomError({ error: Errors.Image[5000] })
         }
 
         const path = parsePath(p)
@@ -76,7 +73,7 @@ export const get = async (context: Context) => {
         let file = await getFile(IMAGE_BUCKET, path.imageId)
 
         if (!file) {
-            throw new Response({ statusCode: 400, message: 'Image not found !' })
+            throw new CustomError({ error: Errors.Image[5001] })
         }
 
 
@@ -101,11 +98,13 @@ export const get = async (context: Context) => {
             isBase64Encoded: true,
             headers: {
                 'Content-Type': 'image/jpg',
-                'Cache-Control': `max-age=${cacheDuration}`,
+                //'Cache-Control': `max-age=${cacheDuration}`,
             },
         }
     } catch (error) {
-        return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
+        return error instanceof CustomError
+            ? error.friendlyResponse
+            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
 }
 
@@ -114,11 +113,7 @@ export const remove = async (context: Context) => {
         const input = removeImageInput.safeParse(context.body)
 
         if (input.success === false) {
-            throw new Response({
-                statusCode: 400,
-                message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',
-                addons: { issues: input.error.issues },
-            })
+            throw new CustomError({ error: Errors.Image[5000], addons: { issues: input.error.issues } })
         }
 
         const { imageId } = input.data
@@ -135,12 +130,15 @@ export const remove = async (context: Context) => {
         )
 
         if (dynamoReq.$metadata.httpStatusCode !== 200) {
-            throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoReq } })
+            throw new CustomError({ error: Errors.Image[5000], addons: { error: dynamoReq } })
         }
-
-        return new Response({ statusCode: 200, body: 'Succesfully deleted image.' }).response
+        return new SuccessResponse({
+            body: 'Succesfully deleted image.',
+        }).response
     } catch (error) {
-        return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
+        return error instanceof CustomError
+            ? error.friendlyResponse
+            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
 }
 
@@ -149,11 +147,7 @@ export const upload = async (context: Context) => {
         const input = uploadInput.safeParse(context.body)
 
         if (input.success === false) {
-            throw new Response({
-                statusCode: 400,
-                message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',
-                addons: { issues: input.error.issues },
-            })
+            throw new CustomError({ error: Errors.Image[5000], addons: { issues: input.error.issues } })
         }
 
         const { name } = input.data
@@ -164,10 +158,7 @@ export const upload = async (context: Context) => {
         }
 
         if (Buffer.from(content, 'base64').toString('base64') !== content) {
-            throw new Response({
-                statusCode: 400,
-                message: 'Content is not base-64 format!',
-            })
+            throw new CustomError({ error: Errors.Image[5002] })
         }
 
         content = gzipSync(Buffer.from(content, 'base64')).toString('base64')
@@ -185,11 +176,15 @@ export const upload = async (context: Context) => {
         )
 
         if (dynamoReq.$metadata.httpStatusCode !== 200) {
-            throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoReq } })
+            throw new CustomError({ error: Errors.Image[5000], addons: { error: dynamoReq } })
         }
 
-        return new Response({ statusCode: 200, body: 'Succesfully uploaded image.' }).response
+        return new SuccessResponse({
+            body: 'Succesfully uploaded image.'
+        }).response
     } catch (error) {
-        return error instanceof Response ? error.response : new Response({ statusCode: 400, message: 'Generic Error', addons: { error: error } }).response
+        return error instanceof CustomError
+            ? error.friendlyResponse
+            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
 }

@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Fuse from 'fuse.js'
-import { Response } from '../../helpers/response'
+import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { has as hasProperty } from 'dot-prop'
 import { modelConfig } from './search-config'
 import { ProductSearchSchema, SearchRequest } from './models'
@@ -168,7 +168,7 @@ export const filterProducts = (searchRequest: SearchRequest, products: ProductSe
         const condition = hasProperty(products[0], attributePath)
 
         if (condition === false) {
-          throw new Response({statusCode: 400, message: "bu field bulunamadı."})
+            throw new CustomError({ error: Errors.Product[5001] })
         }
 
         for (const fieldValue of selectedFilter.filterValues) {

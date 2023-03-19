@@ -1,5 +1,5 @@
 import { Construct } from 'constructs'
-import { AssetHashType, Aws, Duration, Stack, StackProps } from 'aws-cdk-lib'
+import { AssetHashType, Aws, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib'
 import { InstanceStateTable } from './items/DynamoTable'
 import { Roles } from './items/Roles'
 import { S3Storage } from './items/S3'
@@ -11,10 +11,11 @@ import { Certificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager'
 import { App } from 'aws-cdk-lib'
 import * as crypto from 'crypto'
 import { DistributionStack } from './items/Distribution'
-import { DomainName, HttpApi, HttpMethod, HttpRoute, HttpRouteKey, PayloadFormatVersion } from '@aws-cdk/aws-apigatewayv2-alpha'
+import { CorsHttpMethod, DomainName, HttpApi, HttpMethod, HttpRoute, HttpRouteKey, PayloadFormatVersion } from '@aws-cdk/aws-apigatewayv2-alpha'
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha'
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins'
 import { OriginProtocolPolicy, OriginSslPolicy } from 'aws-cdk-lib/aws-cloudfront'
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs'
 
 interface CosServiceStackProps extends StackProps {
     codeHash: string
@@ -59,7 +60,7 @@ export class GoodManStack extends Stack {
             code: Code.fromAsset(path.join('temp', 'layer.zip'), {
               assetHash: getLayerHash('../app-package.json'),
             }),
-            compatibleRuntimes: [Runtime.NODEJS_16_X],
+            compatibleRuntimes: [Runtime.NODEJS_18_X],
             license: 'MIT',
             description: 'Node Modules',
         })
@@ -111,6 +112,14 @@ export class GoodManStack extends Stack {
             httpApi: api,
             routeKey: HttpRouteKey.with('/{proxy+}', HttpMethod.ANY),
             integration: new HttpLambdaIntegration('proxyInegration', functions.apiHandlerLambda, {
+                payloadFormatVersion: PayloadFormatVersion.custom('2.0'),
+            }),
+        })
+
+        new HttpRoute(this, 'AWSAPIOptionsRoute' + HttpMethod.OPTIONS, {
+            httpApi: api,
+            routeKey: HttpRouteKey.with('/{options+}', HttpMethod.OPTIONS),
+            integration: new HttpLambdaIntegration('proxyInegration', functions.optionsHandlerLambda, {
                 payloadFormatVersion: PayloadFormatVersion.custom('2.0'),
             }),
         })

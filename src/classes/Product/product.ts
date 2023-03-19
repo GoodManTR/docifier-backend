@@ -2,7 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import { PRODUCTS_TABLE } from '../../helpers/constants'
 import { ProductSchema, productSchema, upsertProductInput } from './models'
-import { Response } from '../../helpers/response'
+import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { Context } from '../../models'
 import { priceMapper } from '../../helpers/formatter'
 import { customAlphabet } from 'nanoid'
@@ -17,11 +17,7 @@ export const upsertProduct = async (context: Context) => {
         const _input = upsertProductInput.safeParse(context.body)
 
         if (_input.success === false) {
-            throw new Response({
-                statusCode: 400,
-                message: 'Woops! It looks like you sent us the wrong data. Double-check your request and try again.',
-                addons: { issues: _input.error.issues },
-            })
+            throw new CustomError({ error: Errors.Product[5000], addons: { issues: _input.error.issues } })
         }
         const { productId, stock } = _input.data
 
@@ -53,7 +49,7 @@ export const upsertProduct = async (context: Context) => {
             )
 
             if (dynamoReq.$metadata.httpStatusCode !== 200) {
-                throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoReq } })
+                throw new CustomError({ error: Errors.Product[5000], addons: { issues: dynamoReq } })
             }
         }
 
@@ -68,7 +64,7 @@ export const upsertProduct = async (context: Context) => {
             )
 
             if (dynamoGetReq.$metadata.httpStatusCode !== 200) {
-                throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoGetReq } })
+                throw new CustomError({ error: Errors.Product[5000], addons: { issues: dynamoGetReq } })
             }
             product.analytics = dynamoGetReq.Item!.analytics
             product.stock = stock || dynamoGetReq.Item!.stock
@@ -81,14 +77,16 @@ export const upsertProduct = async (context: Context) => {
             )
 
             if (dynamoReq.$metadata.httpStatusCode !== 200) {
-                throw new Response({ statusCode: 400, message: 'Database Error, please contact admin !', addons: { error: dynamoReq } })
+                throw new CustomError({ error: Errors.Product[5000], addons: { issues: dynamoReq } })
             }
         }
 
-        return new Response({ statusCode: 200, body: product }).response
+        return new SuccessResponse({
+            body: product,
+        }).response
     } catch (error) {
-        return error instanceof Response
-            ? error.response
-            : new Response({ statusCode: 400, message: 'Generic Examinator Error', addons: { error: error } }).response
+        return error instanceof CustomError
+            ? error.friendlyResponse
+            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
 }

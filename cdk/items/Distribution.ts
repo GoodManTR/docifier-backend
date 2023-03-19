@@ -15,6 +15,7 @@ import {
     OriginRequestQueryStringBehavior,
     OriginSslPolicy,
     PriceClass,
+    ResponseHeadersPolicy,
     ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront'
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager'
@@ -58,6 +59,17 @@ export class DistributionStack extends Construct {
                     headerBehavior: OriginRequestHeaderBehavior.all(),
                     queryStringBehavior: OriginRequestQueryStringBehavior.all(),
                 }),
+                responseHeadersPolicy: new ResponseHeadersPolicy(this, 'AWSServiceResponseHeadersPolicy', {
+                    responseHeadersPolicyName: 'AWSServiceResponseHeadersPolicy',
+                    corsBehavior: {
+                        accessControlAllowHeaders: ['*'],
+                        accessControlAllowMethods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+                        accessControlAllowOrigins: ['*'],
+                        accessControlExposeHeaders: ['*'],
+                        accessControlAllowCredentials: false,
+                        originOverride: false
+                    },
+                })
             },
         })
         this.coreApiDistribution.node.addDependency(api!)

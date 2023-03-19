@@ -1,15 +1,15 @@
-import { Response } from '../../helpers/response'
+import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { authorizerCacheTime } from "../../helpers/cache-ages";
 import { Context } from "../../models";
 import { allowedMethods, methods } from './types';
 import { userTypes } from '../../types';
 
-const unauthorizedResponse = new Response({
+const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
-    message: 'ACCESS_DENIED',
+    body: { message: 'ACCESS_DENIED' },
 }).response
 
-const authorizedResponse = new Response({
+const authorizedResponse = new SuccessResponse({
     statusCode: 200,
     headers: {
         'Content-Type': 'application/json',

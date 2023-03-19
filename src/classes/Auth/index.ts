@@ -1,17 +1,16 @@
 import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
-import { Response } from '../../helpers/response'
+import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { authorizerCacheTime } from "../../helpers/cache-ages";
 import { Context } from "../../models";
 import { allowedMethods, enduserAllowedMethods, methods } from "./types";
 import { userTypes } from "../../types";
 
-const unauthorizedResponse = new Response({
+const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
-    message: 'ACCESS_DENIED',
+    body: { message:'ACCESS_DENIED' },
 }).response
 
-const authorizedResponse = new Response({
-    statusCode: 200,
+const authorizedResponse = new SuccessResponse({
     headers: {
         'Content-Type': 'application/json',
         'Cache-Control': `max-age=${authorizerCacheTime}`,
