@@ -1,6 +1,7 @@
 // Auth
 
-export const USER_TABLE = 'UserTable'
+export const AUTH_TABLE = 'AuthenticationTable'
+export const PROFILE_TABLE = 'ProfileTable'
 export const PRODUCTS_TABLE = 'ProductsTable'
 export const IMAGE_TABLE = 'ImageTable'
 

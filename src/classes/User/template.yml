@@ -1,0 +1,9 @@
+authorizer: index.authorizer
+methods:
+  - method: getProfile
+    handler: profile.getProfile
+
+  - method: upsertProfile
+    handler: profile.upsertProfile
+
+

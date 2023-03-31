@@ -2,7 +2,8 @@ import { AttributeType, BillingMode, ProjectionType, StreamViewType, Table } fro
 import { Construct } from 'constructs'
 
 export class InstanceStateTable extends Construct {
-    public readonly userTable: Table
+    public readonly authenticationTable: Table
+    public readonly profileTable: Table
     public readonly sessionTable: Table
     public readonly productsTable: Table
     public readonly imageTable: Table
@@ -10,14 +11,24 @@ export class InstanceStateTable extends Construct {
     constructor(scope: Construct, id: string) {
       super(scope, id);
   
-      this.userTable = new Table(this, 'UserTable', {
+      this.authenticationTable = new Table(this, 'AuthenticationTable', {
         partitionKey: {
           name: 'email',
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
-        tableName: 'UserTable',
+        tableName: 'AuthenticationTable',
+      })
+
+      this.profileTable = new Table(this, 'ProfileTable', {
+        partitionKey: {
+          name: 'userId',
+          type: AttributeType.STRING,
+        },
+        billingMode: BillingMode.PAY_PER_REQUEST,
+        stream: StreamViewType.NEW_IMAGE,
+        tableName: 'ProfileTable',
       })
   
       this.sessionTable = new Table(this, 'SessionTable', {

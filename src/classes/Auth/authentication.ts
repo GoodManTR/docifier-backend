@@ -1,6 +1,6 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
-import { USER_TABLE } from '../../helpers/constants'
+import { AUTH_TABLE } from '../../helpers/constants'
 import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { UserMetaData } from './types'
 import { createSession, terminateSession } from './authorization'
@@ -31,7 +31,7 @@ export async function signUp(context: Context): Promise<any> {
 
         const checkExistingUser = await dynamo.send(
             new GetCommand({
-                TableName: USER_TABLE,
+                TableName: AUTH_TABLE,
                 Key: {
                     email,
                 },
@@ -53,7 +53,7 @@ export async function signUp(context: Context): Promise<any> {
 
         const dynamoReq = await dynamo.send(
             new PutCommand({
-                TableName: USER_TABLE,
+                TableName: AUTH_TABLE,
                 Item: user,
             }),
         )
@@ -86,7 +86,7 @@ export const signIn = async (context: Context): Promise<any> => {
 
         const dynamoReq = await dynamo.send(
             new GetCommand({
-                TableName: USER_TABLE,
+                TableName: AUTH_TABLE,
                 Key: {
                     email,
                 },
