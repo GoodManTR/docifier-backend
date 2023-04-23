@@ -4,9 +4,9 @@ interface TErrorMessages {
     System: BaseError[]
     Auth: BaseError[]
     Image: BaseError[]
-    Product: BaseError[]
     Api: BaseError[]
     User: BaseError[]
+    Documentation: BaseError[]
 }
 
 type Locales = 'tr_TR' | 'en_US' | 'tr-tr' | 'en-us'

@@ -5,7 +5,7 @@ export class InstanceStateTable extends Construct {
     public readonly authenticationTable: Table
     public readonly profileTable: Table
     public readonly sessionTable: Table
-    public readonly productsTable: Table
+    public readonly docTable: Table
     public readonly imageTable: Table
 
     constructor(scope: Construct, id: string) {
@@ -42,14 +42,14 @@ export class InstanceStateTable extends Construct {
         tableName: 'SessionTable',
       })
 
-      this.productsTable = new Table(this, 'ProductsTable', {
+      this.docTable = new Table(this, 'DocTable', {
         partitionKey: {
-          name: 'productId',
+          name: 'docId',
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
-        tableName: 'ProductsTable',
+        tableName: 'DocTable',
       })
 
       this.imageTable = new Table(this, 'ImageTable', {

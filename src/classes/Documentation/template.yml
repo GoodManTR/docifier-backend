@@ -1,0 +1,13 @@
+authorizer: index.authorizer
+methods:
+  - method: createDocumentation
+    handler: documentation.createDocumentation
+
+  - method: getDocumentations
+    handler: documentation.getDocumentations
+
+  - method: deleteDocumentation
+    handler: documentation.deleteDocumentation
+
+  - method: addUser
+    handler: docUser.addUser
