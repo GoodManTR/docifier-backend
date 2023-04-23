@@ -14,10 +14,10 @@ export AWS_API_TYPE=""
 export AWS_REGION="eu-west-1"
 export AWS_DOMAIN='api.goodmanio.net'
 
-# npm run cdk -- -a "ts-node ./cdk/GoodManStack.ts" synth --context @aws-cdk/core:stackRelativeExports="false" --context @aws-cdk/core:newStyleStackSynthesis="true" --context @aws-cdk/core:bootstrapQualifier="hnb659fds" GoodManStack -q --profile docifier-bahadir
-# echo "synth finished"
-# npm run cdk -- bootstrap --toolkit-stack-name CDKToolkit --qualifier hnb659fds --profile docifier-bahadir
-# echo "bootstrap finished"
+npm run cdk -- -a "ts-node ./cdk/GoodManStack.ts" synth --context @aws-cdk/core:stackRelativeExports="false" --context @aws-cdk/core:newStyleStackSynthesis="true" --context @aws-cdk/core:bootstrapQualifier="hnb659fds" GoodManStack -q --profile docifier-bahadir
+echo "synth finished"
+npm run cdk -- bootstrap --toolkit-stack-name CDKToolkit --qualifier hnb659fds --profile docifier-bahadir
+echo "bootstrap finished"
 
 npm run cdk -- deploy --require-approval never GoodManStack --profile docifier-bahadir
 echo "deploy finished"
