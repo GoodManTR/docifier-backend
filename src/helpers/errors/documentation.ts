@@ -14,4 +14,17 @@ export const Documentation: Record<number, ErrorType> = {
       tr_TR: 'Hata',
     },
   },
+  5001: {
+    classId: 'Documentation',
+    code: 5001,
+    statusCode: 400,
+    message: {
+      en_US: 'Unauthorized!',
+      tr_TR: 'Yetkisiz!',
+    },
+    title: {
+      en_US: 'Error',
+      tr_TR: 'Hata',
+    },
+  },
 }

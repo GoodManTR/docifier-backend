@@ -11,3 +11,6 @@ methods:
 
   - method: addUser
     handler: docUser.addUser
+
+  - method: saveDocumentationTree
+    handler: docTree.saveDocumentationTree

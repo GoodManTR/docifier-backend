@@ -18,6 +18,13 @@ export const enduserAllowedMethods = z.enum([
     'refreshToken'
 ])
 
+export const docUserRole = z.enum([
+    'owner',
+    'admin',
+    'editor',
+    'viewer'
+])
+
 export const user = z.object({
     email: z.string().email(),
     password: z.string(),

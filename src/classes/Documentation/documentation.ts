@@ -4,8 +4,9 @@ import { DOC_TABLE } from '../../helpers/constants'
 import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { Context } from '../../models'
 import { customAlphabet } from 'nanoid'
-import { DocumentationConfig, documentationConfig } from './models'
+import { DocumentationConfig, deleteDocInput, documentationConfig } from './models'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
+import { docUserRole } from '../Auth/types'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -20,15 +21,21 @@ export const createDocumentation = async (context: Context) => {
         if (input.success === false) {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: input.error.issues } })
         }
-        const { alias, users } = input.data
+        const { alias } = input.data
+        const docId = nanoid()
 
         const dynamoReq = await dynamo.send(
             new PutCommand({
                 TableName: DOC_TABLE,
                 Item: {
-                    projectId: nanoid(),
+                    docId,
                     alias,
-                    users,
+                    users: [
+                        {
+                            userId: context.userId,
+                            role: docUserRole.Enum.owner,
+                        }
+                    ],
                 },
             }),
         )
@@ -37,7 +44,11 @@ export const createDocumentation = async (context: Context) => {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: dynamoReq } })
         }
 
-        return new SuccessResponse({}).response
+        return new SuccessResponse({
+            body: {
+                docId
+            },
+        }).response
     } catch (error) {
         return error instanceof CustomError
             ? error.friendlyResponse
@@ -76,7 +87,7 @@ export const getDocumentations = async (context: Context) => {
 
 export const deleteDocumentation = async (context: Context) => {
     try {
-        const input = documentationConfig.safeParse(context.body)
+        const input = deleteDocInput.safeParse(context.body)
 
         if (input.success === false) {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: input.error.issues } })

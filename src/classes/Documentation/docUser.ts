@@ -36,7 +36,7 @@ export const addUser = async (context: Context) => {
         }
 
         const documentation = getProject.Item as DocumentationConfig
-        documentation.users.push({ userId, role: 'user' })
+        documentation.users!.push({ userId, role: 'user' })
 
         const updateProject = await dynamo.send(
             new PutCommand({

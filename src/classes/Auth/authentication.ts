@@ -65,7 +65,10 @@ export async function signUp(context: Context): Promise<any> {
         const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
 
         return new SuccessResponse({
-            body: session,
+            body: {
+                session,
+                user
+            },
         }).response
     } catch (error) {
         return error instanceof CustomError
@@ -102,7 +105,10 @@ export const signIn = async (context: Context): Promise<any> => {
         const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
 
         return new SuccessResponse({
-            body: session,
+            body: {
+                session,
+                user
+            },
         }).response
     } catch (error) {
         return error instanceof CustomError
