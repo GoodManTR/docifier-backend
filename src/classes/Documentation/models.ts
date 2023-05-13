@@ -32,3 +32,23 @@ export const saveDocTreeInput = z.object({
 
 export type SaveDocTreeInput = z.infer<typeof saveDocTreeInput>
 
+export const saveDocSheetInput = z.object({
+    docId: z.string(),
+    sheetId: z.string(),
+    data: z.string()
+  })
+
+export type SaveDocSheetInput = z.infer<typeof saveDocSheetInput>
+
+export const getDocTreeInput = z.object({
+    docId: z.string()
+  })
+
+export type GetDocTreeInput = z.infer<typeof getDocTreeInput>
+
+export const getDocSheetInput = z.object({
+    docId: z.string(),
+    sheetId: z.string(),
+  })
+
+export type GetDocSheetInput = z.infer<typeof getDocSheetInput>

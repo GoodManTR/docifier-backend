@@ -8,6 +8,7 @@ export class InstanceStateTable extends Construct {
     public readonly docTable: Table
     public readonly docTreeTable: Table
     public readonly imageTable: Table
+    public readonly docSheetTable: Table
 
     constructor(scope: Construct, id: string) {
       super(scope, id);
@@ -61,6 +62,16 @@ export class InstanceStateTable extends Construct {
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
         tableName: 'DocTreeTable',
+      })
+
+      this.docSheetTable = new Table(this, 'DocSheetTable', {
+        partitionKey: {
+          name: 'sheetId',
+          type: AttributeType.STRING,
+        },
+        billingMode: BillingMode.PAY_PER_REQUEST,
+        stream: StreamViewType.NEW_IMAGE,
+        tableName: 'DocSheetTable',
       })
 
       this.imageTable = new Table(this, 'ImageTable', {

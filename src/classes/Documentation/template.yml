@@ -14,3 +14,12 @@ methods:
 
   - method: saveDocumentationTree
     handler: docTree.saveDocumentationTree
+
+  - method: getDocumentationTree
+    handler: docTree.getDocumentationTree
+
+  - method: saveDocumentationSheet
+    handler: docSheet.saveDocumentationSheet
+
+  - method: getDocumentationSheet
+    handler: docSheet.getDocumentationSheet

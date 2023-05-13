@@ -5,6 +5,7 @@ export const itemTypes = z.enum(['folder', 'document'])
 export const docTreeItem = z.lazy(() =>
   z.object({
     itemId: z.string(),
+    name: z.string(),
     itemType: itemTypes,
     children: z.array(docTreeItem).default([]).optional(),
   })
