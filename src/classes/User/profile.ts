@@ -1,10 +1,10 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import { Context } from '../../models'
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { PROFILE_TABLE } from '../../helpers/constants'
 import { UserData } from './types'
 import { upsertProfileInput } from './models'
+import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)

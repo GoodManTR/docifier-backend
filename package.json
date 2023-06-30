@@ -29,6 +29,7 @@
     "date-fns": "2.29.3",
     "dot-prop": "6.0.1",
     "fastify": "4.9.0",
+    "firebase-admin": "11.9.0",
     "fuse.js": "6.6.2",
     "ioredis": "5.2.3",
     "jimp": "0.22.7",

@@ -6,4 +6,10 @@ methods:
   - method: upsertProfile
     handler: profile.upsertProfile
 
+  - method: signUp
+    handler: auth.signUp
+
+  - method: signIn
+    handler: auth.signIn
+
 

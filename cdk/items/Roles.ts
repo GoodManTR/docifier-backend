@@ -2,7 +2,7 @@ import { AttributeType, BillingMode, ProjectionType, StreamViewType, Table } fro
 import { Construct } from 'constructs'
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
-export const COSLambdaRoleName = 'COSLambdaRole'
+export const AWSLambdaRoleName = 'AWSLambdaRole'
 
 export class Roles extends Construct {
     public readonly role: Role
@@ -11,7 +11,7 @@ export class Roles extends Construct {
       super(scope, id);
 
       this.role = new Role(this, id, {
-        roleName: COSLambdaRoleName,
+        roleName: AWSLambdaRoleName,
         assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
     })
     if (this.role) {

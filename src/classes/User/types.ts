@@ -3,6 +3,13 @@ import { z } from "zod"
 export const methods = z.enum([
     'getProfile',
     'upsertProfile',
+    'signIn',
+    'signUp',
+])
+
+export const allowedMethods = z.enum([
+    'signIn',
+    'signUp',
 ])
 
 export const userData = z.object({

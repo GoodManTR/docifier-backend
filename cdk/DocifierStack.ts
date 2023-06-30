@@ -17,37 +17,12 @@ import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins'
 import { OriginProtocolPolicy, OriginSslPolicy } from 'aws-cdk-lib/aws-cloudfront'
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs'
 
-interface CosServiceStackProps extends StackProps {
+interface AWSServiceStackProps extends StackProps {
     codeHash: string
 }
 
-export const originShield = {
-    // Same region mapping
-    'us-east-2': 'us-east-2',
-    'us-east-1': 'us-east-1',
-    'us-west-2': 'us-west-2',
-    'ap-south-1': 'ap-south-1',
-    'ap-northeast-2': 'ap-northeast-2',
-    'ap-southeast-1': 'ap-southeast-1',
-    'ap-southeast-2': 'ap-southeast-2',
-    'ap-northeast-1': 'ap-northeast-1',
-    'eu-central-1': 'eu-central-1',
-    'eu-west-1': 'eu-west-1',
-    'eu-west-2': 'eu-west-2',
-    'sa-east-1': 'sa-east-1',
-    // Different region mapping
-    'us-west-1': 'us-west-2',
-    'af-south-1': 'eu-west-1',
-    'ap-east-1': 'ap-southeast-1',
-    'ca-central-1': 'us-east-1',
-    'eu-south-1': 'eu-central-1',
-    'eu-west-3': 'eu-west-2',
-    'eu-north-1': 'eu-west-2',
-    'me-south-1': 'ap-south-1',
-} as any
-
-export class GoodManStack extends Stack {
-    constructor(scope: Construct, id: string, props: CosServiceStackProps) {
+export class DocifierStack extends Stack {
+    constructor(scope: Construct, id: string, props: AWSServiceStackProps) {
         super(scope, id, props)
 
         const accountId = Stack.of(this).account
@@ -66,9 +41,9 @@ export class GoodManStack extends Stack {
         })
 
         let certificateArn: string = process.env.AWS_API_CERTIFICATE_ARN!
-        let retterIOCert: ICertificate | undefined = undefined
-        retterIOCert = Certificate.fromCertificateArn(this, 'AWSServiceDistributionCertificate', certificateArn)
-        const retterIOCert_API_GW = Certificate.fromCertificateArn(this, 'AWSServiceGatewayCertificate', process.env.AWS_GATEWAY_CERTIFICATE_ARN!)
+        let awsCert: ICertificate | undefined = undefined
+        awsCert = Certificate.fromCertificateArn(this, 'AWSServiceDistributionCertificate', certificateArn)
+        const awsCert_API_GW = Certificate.fromCertificateArn(this, 'AWSServiceGatewayCertificate', process.env.AWS_GATEWAY_CERTIFICATE_ARN!)
 
         // DynamoDB
         const instanceStateTable = new InstanceStateTable(this, 'AWSTable')
@@ -88,16 +63,13 @@ export class GoodManStack extends Stack {
         // *******************************
         // *******************************
 
-        const originShieldRegion: string | undefined = originShield[process.env.AWS_REGION!]
-        if (!originShieldRegion) console.log('Origin Shield region could not found so Origin Shield is not activated!')
-
         const api = new HttpApi(this, 'AWSServiceHttpAPI', {
             description: 'Cloud Objects service Http Api',
             createDefaultStage: true,
             defaultDomainMapping: {
                 domainName: new DomainName(this, 'AWSAPIGatewayDomainName', {
                     domainName: apiDomain,
-                    certificate: retterIOCert_API_GW,
+                    certificate: awsCert_API_GW,
                 }),
             },
         })
@@ -108,7 +80,7 @@ export class GoodManStack extends Stack {
         // *******************************
         // *******************************
 
-        new HttpRoute(this, 'COSApiProxyRoute_' + HttpMethod.ANY, {
+        new HttpRoute(this, 'AWSApiProxyRoute_' + HttpMethod.ANY, {
             httpApi: api,
             routeKey: HttpRouteKey.with('/{proxy+}', HttpMethod.ANY),
             integration: new HttpLambdaIntegration('proxyInegration', functions.apiHandlerLambda, {
@@ -128,12 +100,11 @@ export class GoodManStack extends Stack {
             originSslProtocols: [OriginSslPolicy.TLS_V1_2],
             protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
             httpPort: 443,
-            keepaliveTimeout: Duration.seconds(60),
-            originShieldRegion,
+            keepaliveTimeout: Duration.seconds(60)
         })
 
         // Distribution
-        const distribution = new DistributionStack(this, 'AWSDistributionStack', retterIOCert, api, origin)
+        const distribution = new DistributionStack(this, 'AWSDistributionStack', awsCert, api, origin)
     }
 }
 
@@ -145,5 +116,5 @@ function getLayerHash(packagePath: string): string {
 }
 
 const app = new App()
-new GoodManStack(app, 'GoodManStack', { codeHash: Date.now().toString() })
+new DocifierStack(app, 'DocifierStack', { codeHash: Date.now().toString() })
 app.synth()

@@ -1,8 +1,8 @@
 import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { authorizerCacheTime } from "../../helpers/cache-ages";
 import { Context } from "../../models";
 import { userTypes } from "../../types";
+import { SuccessResponse } from "../../helpers/response-manager";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,

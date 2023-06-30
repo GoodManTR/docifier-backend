@@ -1,5 +1,4 @@
 import { ParsedPath, ResizedImageParameters, removeImageInput, resizedImageParameters, uploadInput } from './models'
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { customAlphabet } from 'nanoid'
 import { gunzipSync, gzipSync } from 'zlib'
 import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
@@ -8,6 +7,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { deleteFile, getFile, uplaodFile } from '../../helpers/s3'
 import * as Jimp from 'jimp'
 import { Context } from '../../models'
+import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)

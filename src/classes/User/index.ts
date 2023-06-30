@@ -1,8 +1,9 @@
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
+
 import { authorizerCacheTime } from "../../helpers/cache-ages";
 import { Context } from "../../models";
-import { methods } from './types';
+import { allowedMethods, methods } from './types';
 import { userTypes } from '../../types';
+import { SuccessResponse } from "../../helpers/response-manager";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -20,5 +21,6 @@ const authorizedResponse = new SuccessResponse({
 export const authorizer = async (context: Context) => {
     const  { methodName, identity } = context
     
-    return authorizedResponse
+    if (allowedMethods.enum[methodName]) return authorizedResponse
+    return authorizedResponse // TODO: unauthorizedResponse
 }

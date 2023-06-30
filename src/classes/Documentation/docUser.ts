@@ -1,11 +1,11 @@
 import { DynamoDB, DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import { DOC_TABLE } from '../../helpers/constants'
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
 import { Context } from '../../models'
 import { customAlphabet } from 'nanoid'
 import { DocumentationConfig, addUserInput, documentationConfig } from './models'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
+import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)

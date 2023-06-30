@@ -12,3 +12,10 @@ export const docTreeItem = z.lazy(() =>
 );
 
 export type DocTreeItem = z.infer<typeof docTreeItem>
+
+export const docUserRole = z.enum([
+  'owner',
+  'admin',
+  'editor',
+  'viewer'
+])

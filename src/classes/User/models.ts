@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { userTypes } from "../../types"
 
 export const upsertProfileInput = z.object({
     email: z.string().optional(),
@@ -7,3 +8,18 @@ export const upsertProfileInput = z.object({
 })
 
 export type UpsertProfileInput = z.infer<typeof upsertProfileInput>
+
+export const registerInput = z.object({
+    name: z.string(),
+    surname: z.string(),
+    email: z.string().email(),
+    password: z.string(),
+    confirmPassword: z.string(),
+    userType: userTypes
+  })
+  
+  export const signInInput = z.object({
+    email: z.string().email(),
+    password: z.string(),
+  })
+  

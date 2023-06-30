@@ -1,13 +1,11 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
 import { AUTH_TABLE } from '../../helpers/constants'
-import { CustomError, Errors, SuccessResponse } from '../../helpers'
-import { UserMetaData } from './types'
-import { createSession, terminateSession } from './authorization'
 import { encodePassword } from './utils'
-import { registerInput, signInInput, signOutInput } from './models'
-import { v4 as uuidv4 } from 'uuid'
+import { registerInput, signInInput } from './models'
 import { Context } from '../../models'
+import { firebaseApp } from '../../api'
+import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
 
 const client = new DynamoDBClient({})
 
@@ -19,42 +17,44 @@ const dynamo = DynamoDBDocumentClient.from(client)
 // *******************************
 // *******************************
 
-export async function signUp(context: Context): Promise<any> {
+export const signUp = async (context: Context): Promise<any> => {
     try {
-        const _input = registerInput.safeParse(context.body)
+        const input = registerInput.safeParse(context.body)
 
-        if (_input.success === false) {
-            throw new CustomError({ error: Errors.Auth[5000], addons: { issues: _input.error.issues } })
+        if (input.success === false) {
+            throw new CustomError({ error: Errors.Auth[5000], addons: { issues: input.error.issues } })
+        }
+        
+        const auth = firebaseApp.auth()
+        const { email, password, confirmPassword, name, surname, userType } = input.data
+
+        if (password !== confirmPassword) {
+            throw new CustomError({ error: Errors.Auth[5000], addons: { issues: 'Passwords do not match' } })
         }
 
-        const { email, password, userTypes } = _input.data
-
-        const checkExistingUser = await dynamo.send(
-            new GetCommand({
-                TableName: AUTH_TABLE,
-                Key: {
-                    email,
-                },
-            }),
-        )
-
-        if (checkExistingUser.Item) {
-            throw new CustomError({ error: Errors.Auth[5001], addons: email })
-        }
-
-        const newId = uuidv4().replace(/-/g, '')
-
-        const user: UserMetaData = {
-            type: userTypes,
+        const firebaseUser = await auth.createUser({
             email,
-            id: newId,
-            password: encodePassword(password),
-        }
+            password,
+            displayName: `${name} ${surname}`,
+        })
+        const token = await auth.createCustomToken(firebaseUser.uid, {
+            email,
+            name,
+            surname,
+            userType
+        });
 
         const dynamoReq = await dynamo.send(
             new PutCommand({
                 TableName: AUTH_TABLE,
-                Item: user,
+                Item: {
+                    email,
+                    id: firebaseUser.uid,
+                    password: encodePassword(password),
+                    name,
+                    surname,
+                    userType
+                },
             }),
         )
 
@@ -62,12 +62,9 @@ export async function signUp(context: Context): Promise<any> {
             throw new CustomError({ error: Errors.Auth[5000], addons: { issues: dynamoReq } })
         }
 
-        const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
-
         return new SuccessResponse({
             body: {
-                session,
-                user
+                token
             },
         }).response
     } catch (error) {
@@ -85,6 +82,7 @@ export const signIn = async (context: Context): Promise<any> => {
             throw new CustomError({ error: Errors.Auth[5000], addons: { issues: _input.error.issues } })
         }
 
+        const auth = firebaseApp.auth()
         const { email, password: recivedPassword } = _input.data
 
         const dynamoReq = await dynamo.send(
@@ -100,39 +98,17 @@ export const signIn = async (context: Context): Promise<any> => {
             throw new CustomError({ error: Errors.Auth[5002], addons: email })
         }
 
-        const user = dynamoReq.Item as UserMetaData
-
-        const session = await createSession({ userId: user.id, userType: user.type }, context.sourceIp)
-
-        return new SuccessResponse({
-            body: {
-                session,
-                user
-            },
-        }).response
-    } catch (error) {
-        return error instanceof CustomError
-            ? error.friendlyResponse
-            : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
-    }
-}
-
-export const signOut = async (context: Context): Promise<any> => {
-    try {
-        const _input = signOutInput.safeParse(context.body)
-
-        if (_input.success === false) {
-            throw new CustomError({ error: Errors.Auth[5000], addons: { issues: _input.error.issues } })
-        }
-
-        const _token = context.headers['_token']
-
-        const res = await terminateSession(_token!, _input.data.userId)
+        const firebaseUser = await auth.getUserByEmail(email)
+        const token = await auth.createCustomToken(firebaseUser.uid, {
+            email,
+            name: dynamoReq.Item.name,
+            surname: dynamoReq.Item.surname,
+            userType: dynamoReq.Item.userType
+        });
 
         return new SuccessResponse({
             body: {
-                success: true,
-                res,
+                token,
             },
         }).response
     } catch (error) {

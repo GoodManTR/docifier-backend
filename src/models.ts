@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { userTypes } from "./types"
 
 export const context = z.object({
     path: z.string(),
@@ -14,3 +15,9 @@ export const context = z.object({
 })
 
 export type Context = z.infer<typeof context>
+
+export const tokenMetaData = z.object({
+    userType: userTypes,
+    userId: z.string(),
+})
+export type TokenMetaData = z.infer<typeof tokenMetaData>
