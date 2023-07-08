@@ -141,9 +141,14 @@ export const changePassword = async (context: Context): Promise<any> => {
     }
 
     // Check if old password is correct
-    if (dynamoGetUser.Item.password === encodePassword(oldPassword)) {
-      throw new CustomError({ error: Errors.Auth[5009] })
+    if (dynamoGetUser.Item.password !== encodePassword(oldPassword)) {
+      throw new CustomError({ error: Errors.Auth[5011] })
     }
+
+    // Check if old password is same as new password
+    if (dynamoGetUser.Item.password === encodePassword(newPassword)) {
+        throw new CustomError({ error: Errors.Auth[5009] })
+      }
 
     // Check if new passwords match
     if (newPassword !== newPasswordConfirm) {

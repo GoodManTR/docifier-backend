@@ -144,4 +144,17 @@ export const Auth: Record<number, ErrorType> = {
       tr_TR: 'Hata',
     },
   },
+  5011: {
+    classId: 'Auth',
+    code: 5011,
+    statusCode: 403,
+    message: {
+      en_US: 'Old password is incorrect!',
+      tr_TR: 'Eski şifre hatalı!',
+    },
+    title: {
+      en_US: 'Error',
+      tr_TR: 'Hata',
+    },
+  },
 }
