@@ -1,33 +1,74 @@
 {
-  "env": { "es6": true, "node": true },
-  "extends": [
-    "eslint:recommended",
-    "prettier",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier/@typescript-eslint",
-    "plugin:prettier/recommended"
+  "ignorePatterns": [
+    "classes/**/node_modules",
+    "classes/**/__tests__/*.ava.ts",
+    "classes/**/tests/*.ava.ts"
   ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module"
-    // "project": "./tsconfig.json"
+  "settings": {
+    "import/extensions": [
+      ".js",
+      ".ts"
+    ],
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
   },
-  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "airbnb-base",
+    "airbnb-typescript/base",
+    "plugin:import/typescript",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:unicorn/recommended"
+  ],
+  "parserOptions": {
+    "project": [
+      "./tsconfig.json"
+    ]
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint",
+    "unicorn"
+  ],
   "rules": {
-    "prettier/prettier": ["error"],
-    "@typescript-eslint/no-explicit-any": 0,
-    "@typescript-eslint/no-non-null-assertion": 0,
-    "@typescript-eslint/explicit-function-return-type": 0,
-    "@typescript-eslint/ban-types": "error", // { "Function": false }
-    "no-case-declarations": 0,
-
-    "max-len": ["error", 160],
-    "indent": ["error", 4, { "SwitchCase": 1 }],
-    "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
-    "semi": ["error", "never"],
-    "object-curly-spacing": ["error", "always"]
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "no-param-reassign": "off",
+    "object-curly-newline": "off",
+    "@typescript-eslint/no-param-reassign": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/restrict-plus-operands":"off",
+    "@typescript-eslint/no-unnecessary-type-assertion":"off",
+    "@typescript-eslint/no-explicit-any": [
+      "warn",
+      {
+        "ignoreRestArgs": true
+      }
+    ],
+    "@typescript-eslint/require-await": "off",
+    "import/no-unresolved": "error",
+    "@typescript-eslint/semi": "off",
+    "@typescript-eslint/no-unnecessary-type-constraint": "off",
+    "implicit-arrow-linebreak": "off",
+    "max-len": [
+      "error",
+      200
+    ],
+    "no-continue": "off",
+    "no-console": "off",
+    "no-restricted-syntax": "off",
+    "import/no-extraneous-dependencies": "off",
+    "no-plusplus": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/no-redeclare": "off",
+    "import/no-relative-packages": "off",
+    "import/prefer-default-export": "off",
+    "import/no-cycle": "off",
+    "@typescript-eslint/no-unsafe-call": "off" // https://github.com/typescript-eslint/typescript-eslint/issues/2109
   }
 }

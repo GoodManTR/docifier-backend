@@ -2,12 +2,12 @@ import { ParsedPath, ResizedImageParameters, removeImageInput, resizedImageParam
 import { customAlphabet } from 'nanoid'
 import { gunzipSync, gzipSync } from 'zlib'
 import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { IMAGE_BUCKET, IMAGE_TABLE } from '../../helpers/constants'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { deleteFile, getFile, uplaodFile } from '../../helpers/s3'
 import * as Jimp from 'jimp'
 import { Context } from '../../models'
-import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
+import { CustomError, Errors, SuccessResponse } from '../../packages/response-manager'
+import { IMAGE_BUCKET, IMAGE_TABLE } from '../../packages/utils/constants'
+import { deleteFile, getFile, uplaodFile } from '../../packages/utils/s3'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)

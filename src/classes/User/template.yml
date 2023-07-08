@@ -12,4 +12,7 @@ methods:
   - method: signIn
     handler: auth.signIn
 
+  - method: changePassword
+    handler: auth.changePassword
+
 

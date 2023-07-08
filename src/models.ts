@@ -12,6 +12,7 @@ export const context = z.object({
     httpMethod: z.string(),
     body: z.record(z.string()),
     sourceIp: z.string(),
+    claims: z.any(),
 })
 
 export type Context = z.infer<typeof context>

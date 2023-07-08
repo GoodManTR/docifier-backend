@@ -7,6 +7,7 @@ interface TErrorMessages {
     Api: BaseError[]
     User: BaseError[]
     Documentation: BaseError[]
+    Document: BaseError[]
 }
 
 type Locales = 'tr_TR' | 'en_US' | 'tr-tr' | 'en-us'

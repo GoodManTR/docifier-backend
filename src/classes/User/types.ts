@@ -5,11 +5,16 @@ export const methods = z.enum([
     'upsertProfile',
     'signIn',
     'signUp',
+    'changePassword',
 ])
 
 export const allowedMethods = z.enum([
     'signIn',
     'signUp',
+])
+
+export const userAllowedMethods = z.enum([
+    'changePassword',
 ])
 
 export const userData = z.object({

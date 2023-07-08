@@ -1,54 +1,53 @@
 import { DynamoDB, DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { DOC_SHEET_TABLE, DOC_TABLE } from '../../helpers/constants'
 import { Context } from '../../models'
-import { getDocSheetInput, saveDocSheetInput } from './models'
-import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
+import { getDocTreeInput, saveDocTreeInput } from './models'
+import { CustomError, Errors, SuccessResponse } from '../../packages/response-manager'
+import { DOCUMENTATION_TABLE, DOCUMENTATION_TREE_TABLE } from '../../packages/utils/constants'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 const dynamodb = new DynamoDB(client)
 
-export const saveDocumentationSheet = async (context: Context) => {
+export const saveDocumentationTree = async (context: Context) => {
     try {
-        const input = saveDocSheetInput.safeParse(context.body)
+        const input = saveDocTreeInput.safeParse(context.body)
 
         if (input.success === false) {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: input.error.issues } })
         }
 
-        const { docId, sheetId, data } = input.data
+        const { documentationId, tree } = input.data
 
         const document = await dynamo.send(
             new GetCommand({
-                TableName: DOC_TABLE,
+                TableName: DOCUMENTATION_TABLE,
                 Key: {
-                    docId,
+                    documentationId,
                 },
             }),
         )
 
         if (!document || !document.Item) {
-            throw new CustomError({ error: Errors.Documentation[5000], addons: docId })
+            throw new CustomError({ error: Errors.Documentation[5000], addons: documentationId })
         }
 
         if (!(document.Item.users.some((user) => user.userId === context.userId))) {
             throw new CustomError({ error: Errors.Documentation[5001]})
         }
 
-        const docSheet = await dynamo.send(
+        const dynamoReq = await dynamo.send(
             new PutCommand({
-                TableName: DOC_SHEET_TABLE,
+                TableName: DOCUMENTATION_TREE_TABLE,
                 Item: {
-                    docId,
-                    sheetId,
-                    data
+                    documentationId,
+                    tree,
                 },
             }),
         )
 
-        if (docSheet.$metadata.httpStatusCode !== 200) {
-            throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: docSheet } })
+        if (dynamoReq.$metadata.httpStatusCode !== 200) {
+            throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: dynamoReq } })
         }
 
         return new SuccessResponse({
@@ -63,48 +62,48 @@ export const saveDocumentationSheet = async (context: Context) => {
     }
 }
 
-export const getDocumentationSheet = async (context: Context) => {
+export const getDocumentationTree = async (context: Context) => {
     try {
-        const input = getDocSheetInput.safeParse(context.body)
+        const input = getDocTreeInput.safeParse(context.body)
 
         if (input.success === false) {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: input.error.issues } })
         }
 
-        const { docId, sheetId } = input.data
+        const { documentationId } = input.data
 
         const document = await dynamo.send(
             new GetCommand({
-                TableName: DOC_TABLE,
+                TableName: DOCUMENTATION_TABLE,
                 Key: {
-                    docId,
+                    documentationId,
                 },
             }),
         )
 
         if (!document || !document.Item) {
-            throw new CustomError({ error: Errors.Documentation[5000], addons: docId })
+            throw new CustomError({ error: Errors.Documentation[5000], addons: documentationId })
         }
 
         if (!(document.Item.users.some((user) => user.userId === context.userId))) {
             throw new CustomError({ error: Errors.Documentation[5001]})
         }
 
-        const docSheet = await dynamo.send(
+        const docTree = await dynamo.send(
             new GetCommand({
-                TableName: DOC_SHEET_TABLE,
+                TableName: DOCUMENTATION_TREE_TABLE,
                 Key: {
-                    sheetId
+                    documentationId,
                 },
             }),
         )
 
-        if (!docSheet || !docSheet.Item) {
-            throw new CustomError({ error: Errors.Documentation[5000], addons: docSheet })
+        if (!docTree || !docTree.Item) {
+            throw new CustomError({ error: Errors.Documentation[5000], addons: docTree })
         }
 
         return new SuccessResponse({
-            body: docSheet.Item,
+            body: docTree.Item,
         }).response
     } catch (error) {
         return error instanceof CustomError

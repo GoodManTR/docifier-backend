@@ -1,6 +1,5 @@
 import { Construct } from 'constructs'
 import { AssetHashType, Aws, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib'
-import { InstanceStateTable } from './items/DynamoTable'
 import { Roles } from './items/Roles'
 import { S3Storage } from './items/S3'
 import { ServiceLayer } from './items/ServiceLayer'
@@ -16,6 +15,7 @@ import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-al
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins'
 import { OriginProtocolPolicy, OriginSslPolicy } from 'aws-cdk-lib/aws-cloudfront'
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs'
+import { DynamoTable } from './items/DynamoTable'
 
 interface AWSServiceStackProps extends StackProps {
     codeHash: string
@@ -46,7 +46,7 @@ export class DocifierStack extends Stack {
         const awsCert_API_GW = Certificate.fromCertificateArn(this, 'AWSServiceGatewayCertificate', process.env.AWS_GATEWAY_CERTIFICATE_ARN!)
 
         // DynamoDB
-        const instanceStateTable = new InstanceStateTable(this, 'AWSTable')
+        const instanceStateTable = new DynamoTable(this, 'AWSTable')
 
         // S3
         const s3Storage = new S3Storage(this, 'AWSS3')

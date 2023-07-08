@@ -2,10 +2,10 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
-import { createContext } from './helpers/context';
 import firebaseAdmin from 'firebase-admin';
 import serviceAccount from './firebase.json';
-import { CustomError, Errors } from './helpers/response-manager';
+import { CustomError, Errors } from './packages/response-manager';
+import { createContext } from './packages/utils/context';
 
 interface Template {
   authorizer: string;

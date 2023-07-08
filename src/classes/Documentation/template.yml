@@ -10,16 +10,10 @@ methods:
     handler: documentation.deleteDocumentation
 
   - method: addUser
-    handler: docUser.addUser
+    handler: user.addUser
 
   - method: saveDocumentationTree
-    handler: docTree.saveDocumentationTree
+    handler: tree.saveDocumentationTree
 
   - method: getDocumentationTree
-    handler: docTree.getDocumentationTree
-
-  - method: saveDocumentationSheet
-    handler: docSheet.saveDocumentationSheet
-
-  - method: getDocumentationSheet
-    handler: docSheet.getDocumentationSheet
+    handler: tree.getDocumentationTree

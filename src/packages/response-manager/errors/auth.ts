@@ -118,4 +118,30 @@ export const Auth: Record<number, ErrorType> = {
       tr_TR: 'Hata',
     },
   },
+  5009: {
+    classId: 'Auth',
+    code: 5009,
+    statusCode: 403,
+    message: {
+      en_US: 'New password cannot be same as old one',
+      tr_TR: 'Yeni şifre eskisiyle aynı olamaz',
+    },
+    title: {
+      en_US: 'Error',
+      tr_TR: 'Hata',
+    },
+  },
+  5010: {
+    classId: 'Auth',
+    code: 5010,
+    statusCode: 403,
+    message: {
+      en_US: 'Passwords do not match!',
+      tr_TR: 'Şifreler uyuşmuyor!',
+    },
+    title: {
+      en_US: 'Error',
+      tr_TR: 'Hata',
+    },
+  },
 }

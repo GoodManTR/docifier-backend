@@ -1,11 +1,11 @@
 import { DynamoDB, DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
-import { DOC_TABLE } from '../../helpers/constants'
 import { Context } from '../../models'
 import { customAlphabet } from 'nanoid'
 import { DocumentationConfig, addUserInput, documentationConfig } from './models'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
-import { CustomError, Errors, SuccessResponse } from '../../helpers/response-manager'
+import { CustomError, Errors, SuccessResponse } from '../../packages/response-manager'
+import { DOCUMENTATION_TABLE } from '../../packages/utils/constants'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -20,13 +20,13 @@ export const addUser = async (context: Context) => {
         if (input.success === false) {
             throw new CustomError({ error: Errors.Documentation[5000], addons: { issues: input.error.issues } })
         }
-        const { userId, docId} = input.data
+        const { userId, documentationId} = input.data
 
         const getProject = await dynamo.send(
             new GetCommand({
-                TableName: DOC_TABLE,
+                TableName: DOCUMENTATION_TABLE,
                 Key: {
-                    docId,
+                    documentationId,
                 },
             }),
         )
@@ -40,7 +40,7 @@ export const addUser = async (context: Context) => {
 
         const updateProject = await dynamo.send(
             new PutCommand({
-                TableName: DOC_TABLE,
+                TableName: DOCUMENTATION_TABLE,
                 Item: documentation,
             }),
         )

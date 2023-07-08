@@ -1,9 +1,9 @@
 
-import { authorizerCacheTime } from "../../helpers/cache-ages";
+import { authorizerCacheTime } from "../../packages/utils/cache-ages";
 import { Context } from "../../models";
-import { allowedMethods, methods } from './types';
+import { allowedMethods, methods, userAllowedMethods } from './types';
 import { userTypes } from '../../types';
-import { SuccessResponse } from "../../helpers/response-manager";
+import { SuccessResponse } from "../../packages/response-manager";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -22,5 +22,6 @@ export const authorizer = async (context: Context) => {
     const  { methodName, identity } = context
     
     if (allowedMethods.enum[methodName]) return authorizedResponse
-    return authorizedResponse // TODO: unauthorizedResponse
+    if (userAllowedMethods.enum[methodName] && identity === userTypes.enum.enduser) return authorizedResponse
+    return unauthorizedResponse
 }

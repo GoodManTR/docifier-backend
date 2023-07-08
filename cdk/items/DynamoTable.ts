@@ -1,7 +1,7 @@
 import { AttributeType, BillingMode, ProjectionType, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Construct } from 'constructs'
 
-export class InstanceStateTable extends Construct {
+export class DynamoTable extends Construct {
     public readonly authenticationTable: Table
     public readonly profileTable: Table
     public readonly sessionTable: Table
@@ -32,46 +32,35 @@ export class InstanceStateTable extends Construct {
         stream: StreamViewType.NEW_IMAGE,
         tableName: 'ProfileTable',
       })
-  
-      this.sessionTable = new Table(this, 'SessionTable', {
+
+      this.docTable = new Table(this, 'DocumentationTable', {
         partitionKey: {
-          name: 'userId',
+          name: 'documentationId',
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
-        timeToLiveAttribute: 'expiresAt',
-        tableName: 'SessionTable',
+        tableName: 'DocumentationTable',
       })
 
-      this.docTable = new Table(this, 'DocTable', {
+      this.docTreeTable = new Table(this, 'DocumentationTreeTable', {
         partitionKey: {
-          name: 'docId',
+          name: 'documentationId',
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocTable',
+        tableName: 'DocumentationTreeTable',
       })
 
-      this.docTreeTable = new Table(this, 'DocTreeTable', {
+      this.docSheetTable = new Table(this, 'DocumentTable', {
         partitionKey: {
-          name: 'docId',
+          name: 'documentId',
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
         stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocTreeTable',
-      })
-
-      this.docSheetTable = new Table(this, 'DocSheetTable', {
-        partitionKey: {
-          name: 'sheetId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocSheetTable',
+        tableName: 'DocumentTable',
       })
 
       this.imageTable = new Table(this, 'ImageTable', {

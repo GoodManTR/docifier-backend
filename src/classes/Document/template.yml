@@ -1,0 +1,7 @@
+authorizer: index.authorizer
+methods:
+  - method: saveDocument
+    handler: document.saveDocument
+
+  - method: getDocument
+    handler: document.getDocument

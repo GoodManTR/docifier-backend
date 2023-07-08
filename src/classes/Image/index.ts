@@ -1,8 +1,8 @@
-import { authorizerCacheTime } from "../../helpers/cache-ages";
+import { authorizerCacheTime } from "../../packages/utils/cache-ages";
 import { Context } from "../../models";
 import { allowedMethods, methods } from "./types";
 import { userTypes } from "../../types";
-import { SuccessResponse } from "../../helpers/response-manager";
+import { SuccessResponse } from "../../packages/response-manager";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
