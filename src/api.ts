@@ -5,13 +5,18 @@ import * as yaml from 'js-yaml';
 import firebaseAdmin from 'firebase-admin';
 import serviceAccount from './firebase.json';
 import { CustomError, Errors } from './packages/response-manager';
-import { createContext } from './packages/utils/context';
+import { createContext } from './core/context';
+import { checkInstance, fetchStateFromS3, putState } from './core/repositories/state.repository';
 
 interface Template {
   authorizer: string;
+  getState: string;
+  init: string;
+  get: string | undefined
   methods: {
     method: string;
     handler: string;
+    type: 'READ' | 'WRITE'
   }[];
 }
 
@@ -31,41 +36,139 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
     await initializeFirebaseApp();
 
     const params = event.pathParameters?.proxy?.split('/') || [];
-    if (params.length < 2) throw new CustomError({ error: Errors.Api[5001] });
+    if (params.length < 3) throw new CustomError({ error: Errors.Api[5001] });
 
     const context = await createContext(event);
 
-    const classId = params[0];
-    const reqMethod = params[1];
+    let queryStringParameters = event.queryStringParameters ?? {}
+    if (event.queryStringParameters?.['data'] && event.queryStringParameters?.['__isbase64']) {
+      const base64Data = event.queryStringParameters['data']
+      const jsonString = Buffer.from(base64Data, 'base64').toString('utf8')
+      queryStringParameters = JSON.parse(jsonString)
+    }
 
-    const templateFile = `classes/${classId}/template.yml`;
+    const data = {
+      context,
+      state: {
+        private: {},
+        public: {},
+      },
+      request: {
+        headers: event.headers,
+        body: event.body ? JSON.parse(event.body) : {},
+        queryStringParameters,
+        pathParameters: event.pathParameters,
+        httpMethod: event.requestContext.http.method,
+      },
+      response: {},
+    }
 
-    const fileContents = await fs.readFile(templateFile, 'utf8');
+    const action = params[0];
+    const classId = params[1];
+    const reqMethod = params[2];
+    const instanceId: string | undefined = action === 'CALL' ? params[3] : params[2]
+
+    const templateFilePath = `classes/${classId}/template.yml`;
+    const fileContents = await fs.readFile(templateFilePath, 'utf8');
     const templateContent = yaml.load(fileContents) as Template;
 
-    // Authorizer
-    const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.');
-    const authorizerModulePath = path.join(__dirname, 'classes', classId, `${authorizerFile}.js`);
-    const authorizerRequiredModule = require(authorizerModulePath);
-    const authorizerHandler = authorizerRequiredModule[authorizerMethod];
+    if (action === 'CALL') {
+      const instanceExists = await checkInstance(classId, instanceId)
+      if (!instanceExists) {
+        throw new Error('Instance does not exist')
+      }
 
-    const authorizerResponse = await authorizerHandler(context);
-    if (authorizerResponse.statusCode !== 200) {
-      return authorizerResponse;
+      if (!templateContent.getState) {
+        throw new Error('template.yml does not have getState delegate')
+      }
+
+      // Authorizer
+      const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.')
+      const authorizerModulePath = path.join(__dirname, 'classes', classId, `${authorizerFile}.js`)
+      const authorizerRequiredModule = require(authorizerModulePath)
+      const authorizerHandler = authorizerRequiredModule[authorizerMethod]
+
+      const authorizerResponse = await authorizerHandler(data)
+      if (authorizerResponse.statusCode !== 200) {
+        return authorizerResponse
+      }
+
+      data.state = await fetchStateFromS3(classId, instanceId)
+
+      // Method
+      const method = templateContent.methods.find((m) => m.method === reqMethod)
+      if (!method) {
+        throw new CustomError({ error: Errors.Api[5002] })
+      }
+
+      const [handlerFile, methodName] = method.handler.split('.')
+      const modulePath = path.join(__dirname, 'classes', classId, `${handlerFile}.js`)
+      const requiredModule = require(modulePath)
+
+      const methodHandler = requiredModule[methodName]
+      const responseData = await methodHandler(data)
+
+      await putState(classId, instanceId, responseData.state)
+
+      return responseData.response
+    } else if (action === 'INSTANCE') {
+      if (instanceId) {
+        const instanceExists = await checkInstance(classId, instanceId)
+        if (!instanceExists) {
+          throw new Error('Instance does not exist')
+        }
+
+        if (!templateContent.getState) {
+          throw new Error('template.yml does not have getState delegate')
+        }
+      }
+
+      // Authorizer
+      const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.')
+      const authorizerModulePath = path.join(__dirname, 'classes', classId, `${authorizerFile}.js`)
+      const authorizerRequiredModule = require(authorizerModulePath)
+      const authorizerHandler = authorizerRequiredModule[authorizerMethod]
+
+      const authorizerResponse = await authorizerHandler(data)
+      if (authorizerResponse.statusCode !== 200) {
+        return authorizerResponse
+      }
+
+      if (instanceId && templateContent.get) {
+        // get
+        const [getMethodFile, getMethod] = templateContent.get.split('.')
+        const getMethodModulePath = path.join(__dirname, 'classes', classId, `${getMethodFile}.js`)
+        const getMethodRequiredModule = require(getMethodModulePath)
+        const getHandler = getMethodRequiredModule[getMethod]
+
+        const responseData = await getHandler(data)
+
+        await putState(classId, instanceId, responseData.state)
+
+        return responseData.response
+      } else if (instanceId && !templateContent.get) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ })
+        }
+      } else if (!instanceId) {
+        if (!templateContent.init) {
+          throw new Error('Init method is not defined in template.yml')
+        }
+
+        // init
+        const [initMethodFile, initMethod] = templateContent.init.split('.')
+        const initMethodModulePath = path.join(__dirname, 'classes', classId, `${initMethodFile}.js`)
+        const initMethodRequiredModule = require(initMethodModulePath)
+        const initHandler = initMethodRequiredModule[initMethod]
+      
+        const responseData = await initHandler(data)
+
+        await putState(classId, instanceId, responseData.state)
+
+        return responseData.response
+      }
     }
-
-    // Method
-    const method = templateContent.methods.find((m) => m.method === reqMethod);
-    if (!method) {
-      throw new CustomError({ error: Errors.Api[5002] });
-    }
-
-    const [handlerFile, methodName] = method.handler.split('.');
-    const modulePath = path.join(__dirname, 'classes', classId, `${handlerFile}.js`);
-    const requiredModule = require(modulePath);
-
-    const methodHandler = requiredModule[methodName];
-    return await methodHandler(context);
   } catch (error) {
     if (error instanceof CustomError) {
       return error.friendlyResponse;

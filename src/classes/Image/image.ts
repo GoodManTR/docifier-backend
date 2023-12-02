@@ -27,8 +27,8 @@ function generateImageId() {
 const getResizedImage = async ({ height, width, quality, content, fit }: ResizedImageParameters) => {
     const image = await Jimp.read(content)
     const resized = image.resize(width, height, fit)
-    const qualitied = resized.quality(qualities[quality])
-    const buffer = await qualitied.getBase64Async(Jimp.MIME_PNG)
+    const qualitified = resized.quality(qualities[quality])
+    const buffer = await qualitified.getBase64Async(Jimp.MIME_PNG)
     return buffer
 }
 

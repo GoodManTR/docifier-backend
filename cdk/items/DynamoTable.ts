@@ -2,6 +2,7 @@ import { AttributeType, BillingMode, ProjectionType, StreamViewType, Table } fro
 import { Construct } from 'constructs'
 
 export class DynamoTable extends Construct {
+    public readonly DatabaseTable: Table
     public readonly authenticationTable: Table
     public readonly profileTable: Table
     public readonly sessionTable: Table
@@ -12,6 +13,20 @@ export class DynamoTable extends Construct {
 
     constructor(scope: Construct, id: string) {
       super(scope, id);
+
+      this.DatabaseTable = new Table(this, 'DatabaseTable', {
+        partitionKey: {
+          name: 'part',
+          type: AttributeType.STRING,
+        },
+        sortKey: {
+          name: 'sort',
+          type: AttributeType.STRING,
+        },
+        billingMode: BillingMode.PAY_PER_REQUEST,
+        stream: StreamViewType.NEW_IMAGE,
+        tableName: 'DatabaseTable',
+      })
   
       this.authenticationTable = new Table(this, 'AuthenticationTable', {
         partitionKey: {
