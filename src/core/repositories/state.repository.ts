@@ -3,7 +3,6 @@ import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s
 import { resolveStream } from './fileStorage.repository'
 import { getBucketName } from '../constants'
 import { Upload } from '@aws-sdk/lib-storage'
-import { Context } from '../../models'
 
 const COS_BUCKET_NAME = getBucketName()
 

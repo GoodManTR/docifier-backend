@@ -22,6 +22,7 @@ export class LambdaStack extends Construct {
         environment: {
           ACCESS_TOKEN_SECRET: 'ACCESS_TOKEN_SECRET',
           REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_SECRET',
+          AWS_ACCOUNT_ID: accountId,
         },
       })
 
@@ -37,6 +38,7 @@ export class LambdaStack extends Construct {
         environment: {
           ACCESS_TOKEN_SECRET: 'ACCESS_TOKEN_SECRET',
           REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_SECRET',
+          AWS_ACCOUNT_ID: accountId,
         },
       })
 

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import { Context, TokenMetaData } from '../models'
+import {  TokenMetaData } from '../project/models'
 import { firebaseApp } from '../api'
 
 export async function createContext(event: APIGatewayProxyEventV2) {
@@ -38,5 +38,5 @@ export async function createContext(event: APIGatewayProxyEventV2) {
     userIP: event.requestContext.http.sourceIp,
     sourceIp: event.requestContext.http.sourceIp,
     claims,
-  } as Context
+  }
 }
