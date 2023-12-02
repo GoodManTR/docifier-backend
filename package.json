@@ -6,6 +6,7 @@
     "deploy": "npm run build && cdk deploy --profile bahadir --require-approval never",
     "clean": "rm -rf dist coverage tmp temp cdk.out build/tmp build/indexTmp",
     "cdk": "cdk",
+    
     "copy-templates": "find src/classes -name 'template.yml' -exec sh -c 'mkdir -p dist/$(dirname ${1#src/}) && cp $1 dist/$(dirname ${1#src/})' sh {} \\;",
     "create-layer": "rm -rf temp/ && mkdir -p temp/nodejs && cp app-package.json ./temp/nodejs/package.json && npm install --silent --prod --prefix ./temp/nodejs && cd temp && zip -r ./layer.zip nodejs"
   },
