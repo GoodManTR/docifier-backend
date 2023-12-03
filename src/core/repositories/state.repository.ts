@@ -4,7 +4,7 @@ import { resolveStream } from './fileStorage.repository'
 import { getBucketName } from '../constants'
 import { Upload } from '@aws-sdk/lib-storage'
 
-const COS_BUCKET_NAME = getBucketName()
+const AWS_BUCKET_NAME = getBucketName()
 
 const s3 = new S3Client({})
 
@@ -22,7 +22,7 @@ export async function putState(classId: string, instanceId: string, data: any): 
         new Upload({
             client: s3,
             params: {
-                Bucket: COS_BUCKET_NAME,
+                Bucket: AWS_BUCKET_NAME,
                 Key: instanceDataS3Path,
                 Body: zippedData,
                 ContentType: 'application/json',
@@ -38,7 +38,7 @@ export async function fetchStateFromS3(classId: string, instanceId: string): Pro
     const path = getS3Path(classId, instanceId, 'instanceData')
     const instanceDataBlob = await s3.send(
         new GetObjectCommand({
-            Bucket: COS_BUCKET_NAME,
+            Bucket: AWS_BUCKET_NAME,
             Key: path,
         }),
     )
@@ -56,7 +56,7 @@ export async function fetchStateFromS3(classId: string, instanceId: string): Pro
         if (!instanceId) return false
 
         const instanceDataPath = getS3Path(classId, instanceId!, 'instanceData')
-        await s3.send(new HeadObjectCommand({ Bucket: COS_BUCKET_NAME, Key: instanceDataPath }))
+        await s3.send(new HeadObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: instanceDataPath }))
 
         return true
     } catch (e) {
