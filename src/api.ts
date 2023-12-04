@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import firebaseAdmin from 'firebase-admin'
-import serviceAccount from './firebase.json'
+
 import { CustomError, Errors } from './project/packages/response-manager'
 import { createContext } from './core/context'
 import { checkInstance, fetchStateFromS3, putState } from './core/repositories/state.repository'
@@ -20,17 +20,6 @@ interface Template {
     handler: string
     type: 'READ' | 'WRITE'
   }[]
-}
-
-export let firebaseApp: firebaseAdmin.app.App
-
-async function initializeFirebaseApp() {
-  if (!firebaseApp) {
-    firebaseApp = firebaseAdmin.initializeApp({
-      credential: firebaseAdmin.credential.cert(serviceAccount as any),
-      databaseURL: 'https://docifier-6f1c1-default-rtdb.europe-west1.firebasedatabase.app',
-    })
-  }
 }
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {
@@ -60,8 +49,6 @@ const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
   try {
-    await initializeFirebaseApp()
-
     const params = event.pathParameters?.proxy?.split('/') || []
     const paramCount = params[0] === 'CALL' ? 3 : 2
     if (params.length < paramCount) throw new CustomError({ error: Errors.Api[5001] })

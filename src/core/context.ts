@@ -1,19 +1,29 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import {  TokenMetaData } from '../project/models'
-import { firebaseApp } from '../api'
+import { FirebaseApp } from './firebase';
+import { z } from 'zod'
+
+export const tokenMetaData = z.object({
+  userType: z.string(),
+  userId: z.string(),
+})
+export type TokenMetaData = z.infer<typeof tokenMetaData>
 
 export async function createContext(event: APIGatewayProxyEventV2) {
+  const firebase = new FirebaseApp()
+
   const params = event.pathParameters?.proxy?.split('/') || []
+
   const action = params[0];
   const classId = params[1];
   const methodName = params[2];
   const instanceId: string | undefined = action === 'CALL' ? params[3] : params[2]
 
-  const token = event.headers['_token'] as string
   let tokenMetaData: TokenMetaData
+  const token = event.headers['_token'] as string
   let claims: any
+
   if (token) {
-    const firebaseToken = await firebaseApp.auth().verifyIdToken(token)
+    const firebaseToken = await firebase.validateClientToken(token)
     tokenMetaData = {
       userType: firebaseToken.userType,
       userId: firebaseToken.uid,
