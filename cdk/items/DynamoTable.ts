@@ -38,54 +38,6 @@ export class DynamoTable extends Construct {
         tableName: 'AuthenticationTable',
       })
 
-      this.profileTable = new Table(this, 'ProfileTable', {
-        partitionKey: {
-          name: 'userId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'ProfileTable',
-      })
 
-      this.docTable = new Table(this, 'DocumentationTable', {
-        partitionKey: {
-          name: 'documentationId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocumentationTable',
-      })
-
-      this.docTreeTable = new Table(this, 'DocumentationTreeTable', {
-        partitionKey: {
-          name: 'documentationId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocumentationTreeTable',
-      })
-
-      this.docSheetTable = new Table(this, 'DocumentTable', {
-        partitionKey: {
-          name: 'documentId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'DocumentTable',
-      })
-
-      this.imageTable = new Table(this, 'ImageTable', {
-        partitionKey: {
-          name: 'imageId',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'ImageTable',
-      })
     }
   }

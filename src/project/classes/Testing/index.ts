@@ -1,7 +1,7 @@
 
 import { authorizerCacheTime } from "../../packages/utils/cache-ages";
 import { SuccessResponse } from "../../packages/response-manager";
-import { Data, writeToDatabase } from "../../../core";
+import { Data, deleteFile, getFile, setFile, writeToDatabase } from "../../../core";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -40,8 +40,21 @@ export const customMethod = async (data: Data) => {
         }
     })
 
+    // const setFileRes = await setFile({
+    //     filename: 'asdFile',
+    //     body: 'eyJhc2QiOiJhc2Rxd2UifQ=='
+    // })
+
+    // const asd = await getFile({
+    //     filename: 'asdFile'
+    // })
+
+    //     const asd = await deleteFile({
+    //     filename: 'asdFile'
+    // })
+
     data.response = new SuccessResponse({
-        body: data
+        body: {}
     }).response
     return data
 }
