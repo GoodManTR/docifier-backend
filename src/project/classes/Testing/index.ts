@@ -59,7 +59,10 @@ export const customMethod = async (data: Data) => {
     })
 
     data.response = new SuccessResponse({
-        body: {token}
+        body: {
+            identity: data.context.identity,
+            token,
+        }
     }).response
     return data
 }
