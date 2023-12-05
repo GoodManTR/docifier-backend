@@ -1,7 +1,7 @@
 
 import { authorizerCacheTime } from "../../packages/utils/cache-ages";
 import { SuccessResponse } from "../../packages/response-manager";
-import { Data, deleteFile, generateCustomToken, getFile, setFile, writeToDatabase } from "../../../core";
+import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "../../../core";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -25,43 +25,49 @@ export const authorizer = async (data: Data) => {
 export const init = async (data: Data) => {
     data.state.private.asd = 1
 
-    data.response = new SuccessResponse({}).response
+    data.response = new SuccessResponse({
+        body: {
+            qwe: 'asdasdasdasd'
+        }
+    }).response
+    return data
+}
+
+export const get = async (data: Data) => {
+    data.state.private.asd = 1
+
+    data.response = new SuccessResponse({
+        body: {
+            qwe: 'get'
+        }
+    }).response
     return data
 }
 
 export const customMethod = async (data: Data) => {
     data.state.private.asd = 2
 
-    // await writeToDatabase({
-    //     partKey: 'asd',
-    //     sortKey: 'asd',
-    //     data: {
-    //         asd: 1
-    //     }
+    // const res = await methodCall({
+    //     classId: 'Testing',
+    //     instanceId: data.context.instanceId!,
+    //     methodName: 'customMethod2',
     // })
 
-    // const setFileRes = await setFile({
-    //     filename: 'asdFile',
-    //     body: 'eyJhc2QiOiJhc2Rxd2UifQ=='
-    // })
-
-    // const asd = await getFile({
-    //     filename: 'asdFile'
-    // })
-
-    //     const asd = await deleteFile({
-    //     filename: 'asdFile'
-    // })
-
-    const token = await generateCustomToken({
-        userId: 'asd',
-        identity: 'asd',
+    const res = await getInstance({
+        classId: 'Testing',
+        instanceId: 'default',
     })
 
     data.response = new SuccessResponse({
+        body: res.body
+    }).response
+    return data
+}
+
+export const customMethod2 = async (data: Data) => {
+    data.response = new SuccessResponse({
         body: {
-            identity: data.context.identity,
-            token,
+            qwe: 'asdasdasdasd'
         }
     }).response
     return data
@@ -69,4 +75,4 @@ export const customMethod = async (data: Data) => {
 
 export async function getInstanceId(): Promise<string> {
     return 'default'
-  }
+}

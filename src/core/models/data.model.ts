@@ -1,6 +1,19 @@
 import { z } from 'zod'
 import { state } from './state.model'
 
+export interface Template {
+  authorizer: string
+  getState: string
+  init: string
+  get: string | undefined
+  getInstanceId: string
+  methods: {
+    method: string
+    handler: string
+    type: 'READ' | 'WRITE'
+  }[]
+}
+
 export const context = z.object({
   classId: z.string(),
   methodName: z.string(),

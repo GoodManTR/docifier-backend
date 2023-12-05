@@ -7,20 +7,7 @@ import firebaseAdmin from 'firebase-admin'
 import { CustomError, Errors } from './project/packages/response-manager'
 import { createContext } from './core/context'
 import { checkInstance, fetchStateFromS3, putState } from './core/repositories/state.repository'
-import { Context } from './core/models/data.model'
-
-interface Template {
-  authorizer: string
-  getState: string
-  init: string
-  get: string | undefined
-  getInstanceId: string
-  methods: {
-    method: string
-    handler: string
-    type: 'READ' | 'WRITE'
-  }[]
-}
+import { Context, Template } from './core/models/data.model'
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {
   let queryStringParameters = event.queryStringParameters ?? {}
@@ -122,10 +109,13 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       const instanceIdHandler = instanceIdMethodRequiredModule[instanceIdMethod]
 
       const responseInstanceId = await instanceIdHandler(data)
-      data.context.instanceId = instanceId ?? responseInstanceId
 
-      const instanceExists = await checkInstance(classId, instanceId ?? responseInstanceId)
+      const lastInstanceId = instanceId ?? responseInstanceId
+      data.context.instanceId = lastInstanceId
 
+      const instanceExists = await checkInstance(classId, lastInstanceId)
+
+      // get
       if (instanceExists) {
         if (!templateContent.get) {
           return {
@@ -136,6 +126,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
         // get
         data.context.methodName = 'GET'
+        data.state = await fetchStateFromS3(classId, lastInstanceId)
 
         const [getMethodFile, getMethod] = templateContent.get.split('.')
         const getMethodModulePath = path.join(__dirname, 'project', 'classes', classId, `${getMethodFile}.js`)
@@ -144,13 +135,13 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
         const responseData = await getHandler(data)
 
-        await putState(classId, instanceId, responseData.state)
+        await putState(classId, lastInstanceId, responseData.state)
 
         return responseData.response
       }
 
       if (instanceId) {
-        throw new Error(`Instance with id ${instanceId} does not exist in class ${classId}`)
+        throw new Error(`Instance with id ${lastInstanceId} does not exist in class ${classId}`)
       }
 
       if (!templateContent.init) {
@@ -159,7 +150,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       // init
       data.context.methodName = 'INIT'
-
+      data.state = await fetchStateFromS3(classId, lastInstanceId)
+      
       const [initMethodFile, initMethod] = templateContent.init.split('.')
       const initMethodModulePath = path.join(__dirname, 'project', 'classes', classId, `${initMethodFile}.js`)
       const initMethodRequiredModule = require(initMethodModulePath)
@@ -167,7 +159,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       const responseData = await initHandler(data)
 
-      await putState(classId, responseInstanceId, responseData.state)
+      await putState(classId, lastInstanceId, responseData.state)
 
       return responseData.response
     }
