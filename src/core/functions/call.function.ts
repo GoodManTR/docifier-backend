@@ -3,7 +3,7 @@ import crypto from 'node:crypto'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import { MethodCallInput, MethodCallOutput } from '../models/call.model'
-import { checkInstance, fetchStateFromS3, putState } from '../repositories/state.repository'
+import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
 
 function generateHash(payload: object | string): string {
   return crypto.createHash('md5').update(JSON.stringify(payload)).digest('hex')

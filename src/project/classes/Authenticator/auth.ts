@@ -1,4 +1,4 @@
-import { generateCustomToken, getInstance } from '../../../core'
+import { generateCustomToken, getInstance, getReferenceKey } from '../../../core'
 import { CustomError, Errors, SuccessResponse } from '../../packages/response-manager'
 import { classIdentities, userIdentities } from '../../packages/utils/commonSchemas/common'
 import { generateHash } from '../../packages/utils/helpers'
@@ -20,12 +20,15 @@ export const login = async (data: ClassData<LoginInput>) => {
       throw new CustomError({ error: Errors.Authenticator[5004] })
     }
 
-    const userInstance = await getInstance({
+    const userInstance = await getReferenceKey({
       classId: classIdentities.Enum.User,
-      instanceId: data.state.private.userId,
+      key: {
+        name: 'email',
+        value: email,
+      },
     })
 
-    if (userInstance.statusCode === 404) {
+    if (!userInstance.success) {
       throw new CustomError({ error: Errors.Authenticator[5005] })
     }
 

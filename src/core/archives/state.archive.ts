@@ -1,6 +1,6 @@
 import zlib from 'zlib'
 import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { resolveStream } from './fileStorage.repository'
+import { resolveStream } from './fileStorage.archive'
 import { getBucketName } from '../constants'
 import { Upload } from '@aws-sdk/lib-storage'
 

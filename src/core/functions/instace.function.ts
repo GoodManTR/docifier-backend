@@ -1,9 +1,19 @@
-import { checkInstance, fetchStateFromS3, putState } from '../repositories/state.repository'
+import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
-import { GetInstanceInput, GetInstanceOutput } from '../models/instance.model'
+import { DeleteReferenceKeyInput, DeleteReferenceKeyOutput, GetInstanceInput, GetInstanceOutput, GetReferenceKeyInput, GetReferenceKeyOutput, SetReferenceKeyInput, SetReferenceKeyOutput } from '../models/instance.model'
 import { Data, Template } from '../models/data.model'
-import { MethodCallOutput } from '../models/call.model'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { GENERAL_TABLE } from '../constants'
+import { isSuccess } from '../helpers'
+
+const client = new DynamoDBClient({})
+const dynamo = DynamoDBDocumentClient.from(client)
+
+export function getReferencePrimaryKey(lookUp: GetReferenceKeyInput): string {
+  return ['RK', lookUp.classId, lookUp.key.name, lookUp.key.value].join('#')
+}
 
 export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceOutput> => {
   const { classId, instanceId, body, queryStringParams } = input
@@ -32,6 +42,7 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
       classId,
       instanceId,
       methodName: 'GET',
+      identity: 'CLASS'
     } as any,
   }
 
@@ -128,4 +139,86 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
   }
 
   return res
+}
+
+export const getReferenceKey = async (input: GetReferenceKeyInput): Promise<GetReferenceKeyOutput> => {
+  let response = {
+    success: true,
+    instanceId: '',
+  }
+
+  try {
+    const dynamoReq = await dynamo.send(
+      new GetCommand({
+        TableName: GENERAL_TABLE,
+        Key: {
+          part: getReferencePrimaryKey(input),
+          sort: 'RK',
+        },
+      }),
+    )
+
+    if (!isSuccess(dynamoReq.$metadata.httpStatusCode)) {
+      response.success = false
+    }
+
+    response.instanceId = dynamoReq.Item?.instanceId || ''
+  } catch (error) {
+    response.success = false
+  }
+
+  return response
+}
+
+export const setReferenceKey = async (input: SetReferenceKeyInput): Promise<SetReferenceKeyOutput> => {
+  let response = {
+    success: true
+  }
+
+  try {
+    const dynamoReq = await dynamo.send(
+      new PutCommand({
+        TableName: GENERAL_TABLE,
+        Item: {
+          part: getReferencePrimaryKey(input),
+          sort: 'RK',
+          instanceId: input.instanceId,
+        },
+      }),
+    )
+
+    if (!isSuccess(dynamoReq.$metadata.httpStatusCode)) {
+      response.success = false
+    }
+  } catch (error) {
+    response.success = false
+  }
+
+  return response
+}
+
+export const deleteReferenceKey = async (input: DeleteReferenceKeyInput): Promise<DeleteReferenceKeyOutput> => {
+  let response = {
+    success: true
+  }
+  
+  try {
+    const dynamoReq = await dynamo.send(
+      new DeleteCommand({
+        TableName: GENERAL_TABLE,
+        Key: {
+          part: getReferencePrimaryKey(input),
+          sort: 'RK',
+        },
+      }),
+    )
+
+    if (!isSuccess(dynamoReq.$metadata.httpStatusCode)) {
+      response.success = false
+    }
+  } catch (error) {
+    response.success = false
+  }
+
+  return response
 }

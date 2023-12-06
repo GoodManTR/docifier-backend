@@ -29,3 +29,47 @@ export const getInstanceOutput = z.object({
 })
 
 export type GetInstanceOutput = z.infer<typeof getInstanceOutput>
+
+export const getReferenceKeyInput = z.object({
+  classId: z.string(),
+  key: z.object({
+    name: z.string(),
+    value: z.string(),
+  }),
+})
+export type GetReferenceKeyInput = z.infer<typeof getReferenceKeyInput>
+
+export const getReferenceKeyOutput = z.object({
+  success: z.boolean(),
+  instanceId: z.string().optional(),
+})
+export type GetReferenceKeyOutput = z.infer<typeof getReferenceKeyOutput>
+
+export const setReferenceKeyInput = z.object({
+  classId: z.string(),
+  instanceId: z.string(),
+  key: z.object({
+    name: z.string(),
+    value: z.string(),
+  }),
+})
+export type SetReferenceKeyInput = z.infer<typeof setReferenceKeyInput>
+
+export const setReferenceKeyOutput = z.object({
+  success: z.boolean(),
+})
+export type SetReferenceKeyOutput = z.infer<typeof setReferenceKeyOutput>
+
+export const deleteReferenceKeyInput = z.object({
+  classId: z.string(),
+  key: z.object({
+    name: z.string(),
+    value: z.string(),
+  }),
+})
+export type DeleteReferenceKeyInput = z.infer<typeof deleteReferenceKeyInput>
+
+export const deleteReferenceKeyOutput = z.object({
+  success: z.boolean(),
+})
+export type DeleteReferenceKeyOutput = z.infer<typeof deleteReferenceKeyOutput>

@@ -6,7 +6,7 @@ import firebaseAdmin from 'firebase-admin'
 
 import { CustomError, Errors } from './project/packages/response-manager'
 import { createContext } from './core/context'
-import { checkInstance, fetchStateFromS3, putState } from './core/repositories/state.repository'
+import { checkInstance, fetchStateFromS3, putState } from './core/archives/state.archive'
 import { Context, Template } from './core/models/data.model'
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {

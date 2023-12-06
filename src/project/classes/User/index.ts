@@ -1,9 +1,10 @@
 
 import { CustomError, Errors, SuccessResponse } from "../../packages/response-manager";
-import { Data } from "../../../core";
+import { Data, setReferenceKey } from "../../../core";
 import { ClassData } from "./types";
 import { CreateUserInput, createUserInput } from "./models";
 import { v4 as uuidv4 } from 'uuid'
+import { classIdentities } from "../../packages/utils/commonSchemas/common";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -24,9 +25,17 @@ export const init = async (data: ClassData<CreateUserInput>) => {
         if (!input.success) {
           throw new CustomError({ error: Errors.Authenticator[5001] })
         }
+
+        await setReferenceKey({
+            classId: classIdentities.Enum.User,
+            key: {
+                name: 'email',
+                value: input.data.email,
+            },
+            instanceId: data.context.instanceId!,
+        })
     
         data.state.private = input.data
-
     
         data.response = new SuccessResponse({}).response
     } catch (error) {
