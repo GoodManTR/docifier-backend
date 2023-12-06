@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import * as z from 'zod';
-import { MethodResponse } from '../../../core/models/data.model';
+import { Response } from '../../../core/models/data.model';
 
 // Define a schema for the response headers
 const ResponseHeadersSchema = z.record(z.string());
@@ -35,7 +35,7 @@ export class SuccessResponse {
     this.headers = headers || {};
   }
 
-  get response(): MethodResponse {
+  get response(): Response {
     const responseBody = JSON.stringify(this.body);
     
     const response = ResponseSchema.parse({

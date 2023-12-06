@@ -1,0 +1,7 @@
+authorizer: index.authorizer
+init: index.init
+getInstanceId: index.getInstanceId
+methods:
+  - method: login
+    handler: auth.login
+    type: READ

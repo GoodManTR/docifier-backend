@@ -1,8 +1,8 @@
 import { ErrorType } from "../error-response";
 
-export const Auth: Record<number, ErrorType> = {
+export const Authenticator: Record<number, ErrorType> = {
   5000: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5000,
     statusCode: 400,
     message: {
@@ -15,12 +15,12 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5001: {
-    classId: 'Auth',
-    code: 5000,
+    classId: 'Authenticator',
+    code: 5001,
     statusCode: 400,
     message: {
-      en_US: 'User with this email already exists!',
-      tr_TR: 'Bu e-posta ile kayıtlı bir kullanıcı zaten var!',
+      en_US: 'Check the fields you entered.',
+      tr_TR: 'Girdiğiniz alanları kontrol ediniz.',
     },
     title: {
       en_US: 'Error',
@@ -28,12 +28,12 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5002: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5002,
     statusCode: 400,
     message: {
-      en_US: 'User with this email does not exist or Incorrect password!',
-      tr_TR: 'Bu e-posta ile kayıtlı bir kullanıcı yok veya şifre yanlış!',
+      en_US: 'Passwords do not match!',
+      tr_TR: 'Şifreler uyuşmuyor!',
     },
     title: {
       en_US: 'Error',
@@ -41,12 +41,12 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5003: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5003,
-    statusCode: 403,
+    statusCode: 400,
     message: {
-      en_US: 'There has been problem whit your token',
-      tr_TR: 'Tokeninizle ilgili bir sorun oluştu',
+      en_US: 'There has been a problem while creating user.',
+      tr_TR: 'Kullanıcı oluşturuken bir sorun oluştu.',
     },
     title: {
       en_US: 'Error',
@@ -54,12 +54,12 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5004: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5004,
-    statusCode: 403,
+    statusCode: 400,
     message: {
-      en_US: 'There has been a problem while authorizing your token.',
-      tr_TR: 'Tokeninizi yetkilendirmeye çalışırken bir sorun oluştu.',
+      en_US: 'The password you entered is wrong!',
+      tr_TR: 'Girdiğiniz şifre yanlış!',
     },
     title: {
       en_US: 'Error',
@@ -67,12 +67,12 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5005: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5005,
-    statusCode: 403,
+    statusCode: 400,
     message: {
-      en_US: 'You are not authorized to terminate this session.',
-      tr_TR: 'Bu oturumu sonlandırmaya yetkiniz yok.',
+      en_US: 'User not found',
+      tr_TR: 'Kullanıcı bulunamadı.',
     },
     title: {
       en_US: 'Error',
@@ -80,7 +80,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5006: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5006,
     statusCode: 403,
     message: {
@@ -93,7 +93,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5007: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5007,
     statusCode: 403,
     message: {
@@ -106,7 +106,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5008: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5008,
     statusCode: 403,
     message: {
@@ -119,7 +119,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5009: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5009,
     statusCode: 403,
     message: {
@@ -132,7 +132,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5010: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5010,
     statusCode: 403,
     message: {
@@ -145,7 +145,7 @@ export const Auth: Record<number, ErrorType> = {
     },
   },
   5011: {
-    classId: 'Auth',
+    classId: 'Authenticator',
     code: 5011,
     statusCode: 403,
     message: {

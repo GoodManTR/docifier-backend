@@ -1,28 +1,38 @@
 import { checkInstance, fetchStateFromS3, putState } from '../repositories/state.repository'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
-import { GetInstanceInput } from '../models/instance.model'
-import { Template } from '../models/data.model'
+import { GetInstanceInput, GetInstanceOutput } from '../models/instance.model'
+import { Data, Template } from '../models/data.model'
 import { MethodCallOutput } from '../models/call.model'
 
-export const getInstance = async (input: GetInstanceInput): Promise<MethodCallOutput> => {
-  const { classId, instanceId, body } = input
+export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceOutput> => {
+  const { classId, instanceId, body, queryStringParams } = input
 
-  let res = {
+  let res: GetInstanceOutput = {
     statusCode: 200,
     body: {},
     headers: undefined,
+    info: undefined,
   }
 
-  let data = {
-    state: {},
-    request: body || {},
-    response: {},
+  let data: Data = {
+    state: {
+      private: {},
+      public: {},
+    },
+    request: {
+      headers: {},
+      body: body || {},
+      queryStringParams,
+      pathParameters: {},
+      httpMethod: 'GET',
+    },
+    response: {} as any,
     context: {
       classId,
       instanceId,
       methodName: 'GET',
-    },
+    } as any,
   }
 
   const templateFilePath = `project/classes/${classId}/template.yml`
@@ -48,6 +58,10 @@ export const getInstance = async (input: GetInstanceInput): Promise<MethodCallOu
       return {
         statusCode: 200,
         body: {},
+        info: {
+          isNewInstance: false,
+          instanceId: lastInstanceId
+        }
       }
     }
 
@@ -65,6 +79,10 @@ export const getInstance = async (input: GetInstanceInput): Promise<MethodCallOu
       statusCode: responseData.response.statusCode,
       headers: responseData.response.headers,
       body: JSON.parse(responseData.response.body),
+      info: {
+        isNewInstance: false,
+        instanceId: lastInstanceId
+      }
     }
 
     return res
@@ -90,7 +108,6 @@ export const getInstance = async (input: GetInstanceInput): Promise<MethodCallOu
 
   // init
   data.context.methodName = 'INIT'
-  data.state = await fetchStateFromS3(classId, lastInstanceId)
 
   const [initMethodFile, initMethod] = templateContent.init.split('.')
   const initMethodRequiredModule = require(`../../project/classes/${classId}/${initMethodFile}.js`)
@@ -104,6 +121,10 @@ export const getInstance = async (input: GetInstanceInput): Promise<MethodCallOu
     statusCode: responseData.response.statusCode,
     headers: responseData.response.headers,
     body: JSON.parse(responseData.response.body),
+    info: {
+      isNewInstance: true,
+      instanceId: lastInstanceId
+    }
   }
 
   return res

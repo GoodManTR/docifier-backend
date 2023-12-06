@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { state } from './state.model'
 
 export interface Template {
   authorizer: string
@@ -51,28 +50,38 @@ export const httpMethod = z.enum([
 ])
 export type HttpMethod = z.infer<typeof httpMethod>
 
-export const methodRequest = z.object({
-  httpMethod: httpMethod.default('POST'),
-  pathParameters: z.any().optional(),
-  queryStringParams: z.record(z.any()).default({}),
-  headers: z.record(z.any()).default({}),
-  body: z.any().optional(),
-})
-export type MethodRequest = z.infer<typeof methodRequest>
+export interface KeyValue {
+  [key: string]: any;
+}
 
-export const methodResponse = z.object({
-  statusCode: z.number().min(100).max(599).default(204),
-  body: z.any().default({}),
-  headers: z.record(z.string()).optional(),
-  isBase64Encoded: z.boolean().optional(),
-})
-export type MethodResponse = z.infer<typeof methodResponse>
+export interface KeyValueString {
+  [key: string]: string;
+}
 
-export const data = z.object({
-  context,
-  state,
-  request: methodRequest,
-  response: methodResponse,
-})
+export interface AWSResponse<T = any> {
+  statusCode: number;
+  body?: T;
+  headers?: KeyValueString;
+}
+export interface Response<T = any> extends AWSResponse<T> {
+  isBase64Encoded?: boolean;
+}
+export interface Request<T = any> {
+  httpMethod: string;
+  body?: T;
+  headers: KeyValueString;
+  queryStringParams: Record<string, any>;
+  pathParameters?: Record<string, any>
+}
 
-export type Data = z.infer<typeof data>
+export interface State<PUB = KeyValue, PRIV = KeyValue> {
+  public: PUB;
+  private: PRIV;
+}
+
+export interface Data<I = any, O = any, PUB = KeyValue, PRIV = KeyValue> {
+  context: Context;
+  state: State<PUB, PRIV>;
+  request: Request<I>;
+  response: Response<O>;
+}

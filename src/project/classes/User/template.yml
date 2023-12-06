@@ -1,0 +1,13 @@
+authorizer: index.authorizer
+init: index.init
+getInstanceId: index.getInstanceId
+methods:
+  - method: customMethod
+    handler: index.customMethod
+    type: WRITE
+
+  - method: customMethod2
+    handler: index.customMethod2
+    type: WRITE
+
+

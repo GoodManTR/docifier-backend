@@ -150,7 +150,6 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       // init
       data.context.methodName = 'INIT'
-      data.state = await fetchStateFromS3(classId, lastInstanceId)
       
       const [initMethodFile, initMethod] = templateContent.init.split('.')
       const initMethodModulePath = path.join(__dirname, 'project', 'classes', classId, `${initMethodFile}.js`)

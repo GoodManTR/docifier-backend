@@ -1,7 +1,7 @@
 import { FirebaseApp } from "../firebase"
 import { GenerateCustomTokenInput } from "../models/auth.model"
 
-export const generateCustomToken = async (input: GenerateCustomTokenInput): Promise<any> => {
+export const generateCustomToken = async (input: GenerateCustomTokenInput): Promise<string> => {
       const firebase = new FirebaseApp()
       const claims = {
             ...input.claims,

@@ -2,7 +2,7 @@ import { z } from "zod"
 
 interface TErrorMessages {
     System: BaseError[]
-    Auth: BaseError[]
+    Authenticator: BaseError[]
     Image: BaseError[]
     Api: BaseError[]
     User: BaseError[]
