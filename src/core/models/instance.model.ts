@@ -11,6 +11,10 @@ export type GetInstanceOperation = z.infer<typeof getInstanceOperation>
 export const getInstanceInput = z.object({
   classId: z.string(),
   instanceId: z.string().optional(),
+  referenceKey: z.object({
+    name: z.string(),
+    value: z.string(),
+  }).optional(),
   body: z.any().optional(),
   queryStringParams: z.any().optional(),
 })

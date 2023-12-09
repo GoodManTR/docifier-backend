@@ -82,10 +82,10 @@ export const Authenticator: Record<number, ErrorType> = {
   5006: {
     classId: 'Authenticator',
     code: 5006,
-    statusCode: 403,
+    statusCode: 400,
     message: {
-      en_US: 'There has been a problem while terminating your session.',
-      tr_TR: 'Oturumunuzu sonlandırmaya çalışırken bir sorun oluştu.',
+      en_US: 'There is already a user registered with this email',
+      tr_TR: 'Bu email ile kayıtlı bir kullanıcı zaten mevcut',
     },
     title: {
       en_US: 'Error',

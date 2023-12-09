@@ -23,12 +23,20 @@ export async function createContext(event: APIGatewayProxyEventV2) {
   const token = event.headers['_token'] as string
   let claims: any
   if (token) {
-    const firebaseToken = await firebase.validateClientToken(token)
-    tokenMetaData = {
-      identity: firebaseToken.identity,
-      userId: firebaseToken.uid,
+    try {
+      const firebaseToken = await firebase.validateClientToken(token)
+      tokenMetaData = {
+        identity: firebaseToken.identity,
+        userId: firebaseToken.uid,
+      }
+      claims = firebaseToken
+    } catch (error) {
+      tokenMetaData = {
+        identity: 'none',
+        userId: 'none',
+      }
+      claims = {}
     }
-    claims = firebaseToken
   } else {
     tokenMetaData = {
       identity: 'none',

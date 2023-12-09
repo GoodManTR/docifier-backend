@@ -16,13 +16,27 @@ export function getReferencePrimaryKey(lookUp: GetReferenceKeyInput): string {
 }
 
 export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceOutput> => {
-  const { classId, instanceId, body, queryStringParams } = input
+  const { classId, body, referenceKey, queryStringParams } = input
+  let instanceId = input.instanceId
 
   let res: GetInstanceOutput = {
     statusCode: 200,
     body: {},
     headers: undefined,
     info: undefined,
+  }
+  
+  if (!instanceId && referenceKey) {
+    const get = await getReferenceKey({
+      classId,
+      key: referenceKey,
+    })
+
+    if (!get.instanceId) {
+      throw new Error(`Instance with reference key ${referenceKey.name}=${referenceKey.value} does not exist in class ${classId}`)
+    }
+
+    instanceId === get.instanceId
   }
 
   let data: Data = {
@@ -158,7 +172,7 @@ export const getReferenceKey = async (input: GetReferenceKeyInput): Promise<GetR
       }),
     )
 
-    if (!isSuccess(dynamoReq.$metadata.httpStatusCode)) {
+    if (!isSuccess(dynamoReq.$metadata.httpStatusCode) || !dynamoReq.Item) {
       response.success = false
     }
 

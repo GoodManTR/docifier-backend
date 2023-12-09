@@ -1,7 +1,7 @@
 
 import { authorizerCacheTime } from "../../packages/utils/cache-ages";
 import { CustomError, Errors, SuccessResponse } from "../../packages/response-manager";
-import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "../../../core";
+import { Data, deleteFile, generateCustomToken, getFile, getInstance, getReferenceKey, methodCall, setFile, writeToDatabase } from "../../../core";
 import { ClassData } from "./types";
 import { RegisterInput, registerInput } from "./models";
 import { generateHash } from "../../packages/utils/helpers";
@@ -17,6 +17,10 @@ const authorizedResponse = new SuccessResponse({}).response
 
 export const authorizer = async (data: Data) => {
     const  { methodName, identity } = data.context
+
+    if (identity === userIdentities.Enum.enduser) {
+        return unauthorizedResponse
+    }
     
     return authorizedResponse
 }
@@ -29,6 +33,18 @@ export const init = async (data: ClassData<RegisterInput>) => {
         }
     
         const { email, password, confirmPassword } = input.data
+        
+        const isUserExists = await getReferenceKey({
+            classId: classIdentities.Enum.User,
+            key: {
+                name: 'email',
+                value: email,
+            },
+        })
+
+        if (isUserExists.success) {
+            throw new CustomError({ error: Errors.Authenticator[5006] })
+        }
     
         if (password !== confirmPassword) {
             throw new CustomError({ error: Errors.Authenticator[5002] })
