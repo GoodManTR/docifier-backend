@@ -3,17 +3,18 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import firebaseAdmin from 'firebase-admin'
-import { createContext } from './context'
-import { checkInstance, fetchStateFromS3, putState } from './archives/state.archive'
-import { Context, Template } from './models/data.model'
-import { CustomError } from './packages/error-response'
+import { createContext } from '../context'
+import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
+import { Context, Data, Template } from '../models/data.model'
+import { CustomError } from '../packages/error-response'
+import { handleTasks } from '../archives/task.archive'
 
-const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {
-  let queryStringParameters = event.queryStringParameters ?? {}
+const prepareData = (event: APIGatewayProxyEventV2, context: Context): Data => {
+  let queryStringParams = event.queryStringParameters ?? {}
   if (event.queryStringParameters?.['data'] && event.queryStringParameters?.['__isbase64']) {
     const base64Data = event.queryStringParameters['data']
     const jsonString = Buffer.from(base64Data, 'base64').toString('utf8')
-    queryStringParameters = JSON.parse(jsonString)
+    queryStringParams = JSON.parse(jsonString)
   }
 
   return {
@@ -23,13 +24,14 @@ const prepareData = (event: APIGatewayProxyEventV2, context: Context) => {
       public: {},
     },
     request: {
-      headers: event.headers,
+      headers: event.headers as any,
       body: event.body ? JSON.parse(event.body) : {},
-      queryStringParameters,
+      queryStringParams,
       pathParameters: event.pathParameters,
       httpMethod: event.requestContext.http.method,
     },
-    response: {},
+    response: {} as any,
+    tasks: [],
   }
 }
 
@@ -59,7 +61,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       // Authorizer
       const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.')
-      const authorizerRequiredModule = require(`../project/classes/${classId}/${authorizerFile}.js`)
+      const authorizerRequiredModule = require(`../../project/classes/${classId}/${authorizerFile}.js`)
       const authorizerHandler = authorizerRequiredModule[authorizerMethod]
 
       const authorizerResponse = await authorizerHandler(data)
@@ -76,21 +78,23 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       }
 
       const [handlerFile, methodName] = method.handler.split('.')
-      const requiredModule = require(`../project/classes/${classId}/${handlerFile}.js`)
+      const requiredModule = require(`../../project/classes/${classId}/${handlerFile}.js`)
       const methodHandler = requiredModule[methodName]
 
-      const responseData = await methodHandler(data)
+      const responseData: Data = await methodHandler(data)
 
       if (method.type === 'WRITE') {
         await putState(classId, instanceId, responseData.state)
       }
+
+      await handleTasks(responseData.tasks, responseData.context)
 
       return responseData.response
     }
     if (action === 'INSTANCE') {
       // Authorizer
       const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.')
-      const authorizerRequiredModule = require(`../project/classes/${classId}/${authorizerFile}.js`)
+      const authorizerRequiredModule = require(`../../project/classes/${classId}/${authorizerFile}.js`)
       const authorizerHandler = authorizerRequiredModule[authorizerMethod]
 
       const authorizerResponse = await authorizerHandler(data)
@@ -100,7 +104,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       // getInstanceId
       const [instanceIdMethodFile, instanceIdMethod] = templateContent.getInstanceId.split('.')
-      const instanceIdMethodRequiredModule = require(`../project/classes/${classId}/${instanceIdMethodFile}.js`)
+      const instanceIdMethodRequiredModule = require(`../../project/classes/${classId}/${instanceIdMethodFile}.js`)
       const instanceIdHandler = instanceIdMethodRequiredModule[instanceIdMethod]
 
       const responseInstanceId = await instanceIdHandler(data)
@@ -124,7 +128,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         data.state = await fetchStateFromS3(classId, lastInstanceId)
 
         const [getMethodFile, getMethod] = templateContent.get.split('.')
-        const getMethodRequiredModule = require(`../project/classes/${classId}/${getMethodFile}.js`)
+        const getMethodRequiredModule = require(`../../project/classes/${classId}/${getMethodFile}.js`)
         const getHandler = getMethodRequiredModule[getMethod]
 
         const responseData = await getHandler(data)
@@ -146,7 +150,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       data.context.methodName = 'INIT'
       
       const [initMethodFile, initMethod] = templateContent.init.split('.')
-      const initMethodRequiredModule = require(`../project/classes/${classId}/${initMethodFile}.js`)
+      const initMethodRequiredModule = require(`../../project/classes/${classId}/${initMethodFile}.js`)
       const initHandler = initMethodRequiredModule[initMethod]
 
       const responseData = await initHandler(data)

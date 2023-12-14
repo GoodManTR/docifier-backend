@@ -2,7 +2,6 @@ import { Construct } from 'constructs'
 import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3'
 import { Duration, Stack } from 'aws-cdk-lib';
 
-export const getImageBucketName = (accountId: string) => `image-bucket-${accountId}-prod`
 export const getAwsBucketName = (accountId: string) => `aws-bucket-${accountId}-prod`
 export class S3Storage extends Construct {
     public readonly awsBucket: Bucket

@@ -28,6 +28,7 @@ export class DocifierStack extends Stack {
     super(scope, id, props)
 
     const accountId = Stack.of(this).account
+    const region = process.env.AWS_REGION!
 
     const apiDomain = process.env.AWS_DOMAIN!
 
@@ -60,7 +61,7 @@ export class DocifierStack extends Stack {
     const queues = new QueuesStack(this, 'AWSQueues')
 
     // Functions
-    const functions = new LambdaStack(this, 'AWSLambdaFunction', roles.role, layer, codeAsset, accountId)
+    const functions = new LambdaStack(this, 'AWSLambdaFunction', roles.role, layer, codeAsset, accountId, region)
 
     functions.taskHandlerLambda.addEventSource(new SqsEventSource(queues.taskDelayQueue, { batchSize: 1, reportBatchItemFailures: true }))
     functions.taskHandlerLambda.addEventSource(new SqsEventSource(queues.taskImmQueue, { batchSize: 1, reportBatchItemFailures: true }))

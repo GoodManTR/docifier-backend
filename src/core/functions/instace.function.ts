@@ -7,6 +7,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { GENERAL_TABLE } from '../constants'
 import { isSuccess } from '../helpers'
+import { handleTasks } from '../archives/task.archive'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -58,6 +59,7 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
       methodName: 'GET',
       identity: 'CLASS'
     } as any,
+    tasks: [],
   }
 
   const templateFilePath = `project/classes/${classId}/template.yml`
@@ -100,6 +102,8 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
 
     await putState(classId, lastInstanceId, responseData.state)
 
+    await handleTasks(responseData.tasks, responseData.context)
+
     res = {
       statusCode: responseData.response.statusCode,
       headers: responseData.response.headers,
@@ -141,6 +145,8 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
   const responseData = await initHandler(data)
 
   await putState(classId, responseInstanceId, responseData.state)
+
+  await handleTasks(responseData.tasks, responseData.context)
 
   res = {
     statusCode: responseData.response.statusCode,

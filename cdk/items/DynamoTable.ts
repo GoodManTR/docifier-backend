@@ -27,17 +27,6 @@ export class DynamoTable extends Construct {
         stream: StreamViewType.NEW_IMAGE,
         tableName: 'DatabaseTable',
       })
-  
-      this.authenticationTable = new Table(this, 'AuthenticationTable', {
-        partitionKey: {
-          name: 'email',
-          type: AttributeType.STRING,
-        },
-        billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
-        tableName: 'AuthenticationTable',
-      })
-
 
     }
   }

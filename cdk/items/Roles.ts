@@ -35,7 +35,8 @@ export class Roles extends Construct {
                     'secretsmanager:GetSecretValue',
                     'states:*',
                     'iam:*',
-                    'cloudfront:*'
+                    'cloudfront:*',
+                    'sqs:*'
                 ],
             }),
         );

@@ -22,6 +22,7 @@ export const context = z.object({
   userIP: z.string(),
   sourceIp: z.string(),
   claims: z.record(z.any()).optional(),
+  headers: z.record(z.any()).optional(),
 })
 
 export type Context = z.infer<typeof context>
@@ -79,9 +80,22 @@ export interface State<PUB = KeyValue, PRIV = KeyValue> {
   private: PRIV;
 }
 
+export interface Task {
+  classId: string;
+  instanceId: string;
+  referenceKey?: {
+      name: string;
+      value: string;
+  };
+  body?: any;
+  methodName: string;
+  after: number;
+}
+
 export interface Data<I = any, O = any, PUB = KeyValue, PRIV = KeyValue> {
   context: Context;
   state: State<PUB, PRIV>;
   request: Request<I>;
   response: Response<O>;
+  tasks: Task[];
 }

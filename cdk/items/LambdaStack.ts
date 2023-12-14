@@ -8,13 +8,13 @@ export class LambdaStack extends Construct {
     public readonly optionsHandlerLambda: Function
     public readonly taskHandlerLambda: Function
 
-    constructor(scope: Construct, id: string, role: Role, layer: LayerVersion, codeAsset: AssetCode, accountId: string) {
+    constructor(scope: Construct, id: string, role: Role, layer: LayerVersion, codeAsset: AssetCode, accountId: string, region: string) {
       super(scope, id)
 
       this.apiHandlerLambda = new Function(this, 'apiHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,
         code: codeAsset,
-        handler: 'core/api.handler',
+        handler: 'core/handlers/api.handler',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(45),
         memorySize: 1769,
@@ -22,13 +22,14 @@ export class LambdaStack extends Construct {
         layers: [layer],
         environment: {
           AWS_ACCOUNT_ID: accountId,
+          AWS_REGION_ID: region,
         },
       })
 
       this.optionsHandlerLambda = new Function(this, 'optionsHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,
         code: codeAsset,
-        handler: 'core/options.handler',
+        handler: 'core/handlers/options.handler',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(45),
         memorySize: 128,
@@ -36,13 +37,14 @@ export class LambdaStack extends Construct {
         layers: [layer],
         environment: {
           AWS_ACCOUNT_ID: accountId,
+          AWS_REGION_ID: region,
         },
       })
 
       this.taskHandlerLambda = new Function(this, 'taskHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,
         code: codeAsset,
-        handler: 'core/task.handler',
+        handler: 'core/handlers/task.handler',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(60),
         memorySize: 1769,
@@ -50,6 +52,7 @@ export class LambdaStack extends Construct {
         layers: [layer],
         environment: {
           AWS_ACCOUNT_ID: accountId,
+          AWS_REGION_ID: region,
         },
       })
 

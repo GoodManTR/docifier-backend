@@ -4,6 +4,7 @@ import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import { MethodCallInput, MethodCallOutput } from '../models/call.model'
 import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
+import { handleTasks } from '../archives/task.archive'
 
 function generateHash(payload: object | string): string {
   return crypto.createHash('md5').update(JSON.stringify(payload)).digest('hex')
@@ -29,6 +30,7 @@ export const methodCall = async (input: MethodCallInput): Promise<MethodCallOutp
       instanceId,
       methodName: reqMethod,
     },
+    tasks: [],
   }
 
   const templateFilePath = `project/classes/${classId}/template.yml`
@@ -51,6 +53,8 @@ export const methodCall = async (input: MethodCallInput): Promise<MethodCallOutp
   if (method.type === 'WRITE' && isStateModified) {
     await putState(classId, instanceId, responseData.state)
   }
+
+  await handleTasks(responseData.tasks, responseData.context)
 
   return {
     statusCode: responseData.response.statusCode,

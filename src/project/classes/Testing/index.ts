@@ -45,30 +45,27 @@ export const get = async (data: Data) => {
 }
 
 export const customMethod = async (data: Data) => {
-    data.state.private.asd = 2
+    data.state.private.asd = 1
 
-    // const res = await methodCall({
-    //     classId: 'Testing',
-    //     instanceId: data.context.instanceId!,
-    //     methodName: 'customMethod2',
-    // })
-
-    const res = await getInstance({
+    data.tasks.push({
         classId: 'Testing',
+        methodName: 'customMethod2',
         instanceId: 'default',
+        after: 0,
+        body: {}
     })
 
     data.response = new SuccessResponse({
-        body: res.body
+        body: data.state.private
     }).response
     return data
 }
 
 export const customMethod2 = async (data: Data) => {
+
+    data.state.private.asd = 5
     data.response = new SuccessResponse({
-        body: {
-            qwe: 'asdasdasdasd'
-        }
+        body: data.state.private
     }).response
     return data
 }
