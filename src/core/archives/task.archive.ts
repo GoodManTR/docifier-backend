@@ -60,12 +60,16 @@ export async function sendToSchedulerSQS(scheduleMessage: ScheduleMessage[]): Pr
 export const handleTasks = async (tasks: Task[], context: Context): Promise<void> => {
   if (!tasks.length) return Promise.resolve()
 
+  const nowInMilliseconds = Date.now()
+  const nowInSeconds = Math.floor(nowInMilliseconds / 1000)
+
   const messages: ScheduleMessage[] = tasks.map((task) => ({
     classId: task.classId,
     instanceId: task.instanceId,
     methodName: task.methodName,
     body: task.body || {},
     after: task.after,
+    startAt: nowInSeconds + task.after,
     context: {
       ...context,
       instanceId: task.instanceId,

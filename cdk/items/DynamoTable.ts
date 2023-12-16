@@ -24,7 +24,8 @@ export class DynamoTable extends Construct {
           type: AttributeType.STRING,
         },
         billingMode: BillingMode.PAY_PER_REQUEST,
-        stream: StreamViewType.NEW_IMAGE,
+        pointInTimeRecovery: true,
+        timeToLiveAttribute: 'expiresAt',
         tableName: 'DatabaseTable',
       })
 

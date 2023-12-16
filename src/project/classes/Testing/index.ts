@@ -51,7 +51,7 @@ export const customMethod = async (data: Data) => {
         classId: 'Testing',
         methodName: 'customMethod2',
         instanceId: 'default',
-        after: 0,
+        after: 901,
         body: {}
     })
 
@@ -63,7 +63,7 @@ export const customMethod = async (data: Data) => {
 
 export const customMethod2 = async (data: Data) => {
 
-    data.state.private.asd = 5
+    data.state.private.asd = 6
     data.response = new SuccessResponse({
         body: data.state.private
     }).response

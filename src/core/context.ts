@@ -52,6 +52,7 @@ export async function createContext(event: APIGatewayProxyEventV2) {
     methodName,
     instanceId,
     headers: event.headers,
+    requestId: event.requestContext.requestId,
     identity,
     userId,
     userIP: event.requestContext.http.sourceIp,

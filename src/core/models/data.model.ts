@@ -18,6 +18,7 @@ export const context = z.object({
   methodName: z.string(),
   instanceId: z.string().optional(),
   identity: z.string(),
+  requestId: z.string(),
   userId: z.string(),
   userIP: z.string(),
   sourceIp: z.string(),
