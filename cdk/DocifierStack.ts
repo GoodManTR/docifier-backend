@@ -63,8 +63,8 @@ export class DocifierStack extends Stack {
     // Functions
     const functions = new LambdaStack(this, 'AWSLambdaFunction', roles.role, layer, codeAsset, accountId, region)
 
-    functions.taskHandlerLambda.addEventSource(new SqsEventSource(queues.taskDelayQueue, { batchSize: 1, reportBatchItemFailures: true }))
-    functions.taskHandlerLambda.addEventSource(new SqsEventSource(queues.taskImmQueue, { batchSize: 1, reportBatchItemFailures: true }))
+    functions.jobHandlerLambda.addEventSource(new SqsEventSource(queues.jobDelayQueue, { batchSize: 1, reportBatchItemFailures: true }))
+    functions.jobHandlerLambda.addEventSource(new SqsEventSource(queues.jobImmQueue, { batchSize: 1, reportBatchItemFailures: true }))
 
     // *******************************
     // *******************************

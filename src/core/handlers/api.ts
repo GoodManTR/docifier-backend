@@ -7,7 +7,7 @@ import { createContext } from '../context'
 import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
 import { Context, Data, Template } from '../models/data.model'
 import { CustomError } from '../packages/error-response'
-import { handleTasks } from '../archives/task.archive'
+import { handleJobs } from '../archives/job.archive'
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context): Data => {
   let queryStringParams = event.queryStringParameters ?? {}
@@ -31,7 +31,7 @@ const prepareData = (event: APIGatewayProxyEventV2, context: Context): Data => {
       httpMethod: event.requestContext.http.method,
     },
     response: {} as any,
-    tasks: [],
+    jobs: [],
   }
 }
 
@@ -87,7 +87,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         await putState(classId, instanceId, responseData.state)
       }
 
-      await handleTasks(responseData.tasks, responseData.context)
+      await handleJobs(responseData.jobs, responseData.context)
 
       return responseData.response
     }

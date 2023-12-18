@@ -5,7 +5,7 @@ set -e
 
 npm run build
 npm run copy-templates
-npm run create-layer
+#npm run create-layer
 
 export AWS_ACCOUNT_ID="959503346295"
 export AWS_GATEWAY_CERTIFICATE_ARN="arn:aws:acm:eu-west-1:959503346295:certificate/b5b26d31-12a9-4f25-a116-9863e27b0cc5"

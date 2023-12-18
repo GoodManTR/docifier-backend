@@ -7,7 +7,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { GENERAL_TABLE } from '../constants'
 import { isSuccess } from '../helpers'
-import { handleTasks } from '../archives/task.archive'
+import { handleJobs } from '../archives/job.archive'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -17,7 +17,7 @@ export function getReferencePrimaryKey(lookUp: GetReferenceKeyInput): string {
 }
 
 export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceOutput> => {
-  const { classId, body, referenceKey, queryStringParams } = input
+  const { classId, body, referenceKey, queryStringParams, context } = input
   let instanceId = input.instanceId
 
   let res: GetInstanceOutput = {
@@ -54,12 +54,13 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
     },
     response: {} as any,
     context: {
+      ...context,
       classId,
       instanceId,
       methodName: 'GET',
       identity: 'CLASS'
     } as any,
-    tasks: [],
+    jobs: [],
   }
 
   const templateFilePath = `project/classes/${classId}/template.yml`
@@ -102,7 +103,7 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
 
     await putState(classId, lastInstanceId, responseData.state)
 
-    await handleTasks(responseData.tasks, responseData.context)
+    await handleJobs(responseData.jobs, responseData.context)
 
     res = {
       statusCode: responseData.response.statusCode,
@@ -146,7 +147,7 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
 
   await putState(classId, responseInstanceId, responseData.state)
 
-  await handleTasks(responseData.tasks, responseData.context)
+  await handleJobs(responseData.jobs, responseData.context)
 
   res = {
     statusCode: responseData.response.statusCode,

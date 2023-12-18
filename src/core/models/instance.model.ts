@@ -15,6 +15,7 @@ export const getInstanceInput = z.object({
     name: z.string(),
     value: z.string(),
   }).optional(),
+  context: z.any(),
   body: z.any().optional(),
   queryStringParams: z.any().optional(),
 })

@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises'
 import * as yaml from 'js-yaml'
 import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
 import { Data, Template } from '../models/data.model'
-import { handleTasks } from '../archives/task.archive'
+import { handleJobs } from '../archives/job.archive'
 import { ScheduleMessage } from '../models/queue.model'
 
 export async function handler(payload: ScheduleMessage): Promise<any> {
@@ -31,7 +31,7 @@ export async function handler(payload: ScheduleMessage): Promise<any> {
             statusCode: 200,
             body: {},
           },
-          tasks: [],
+          jobs: [],
         } as Data
     
         if (reqMethod === 'INIT' || reqMethod === 'GET') {
@@ -114,7 +114,7 @@ export async function handler(payload: ScheduleMessage): Promise<any> {
             await putState(classId, instanceId, responseData.state)
           }
     
-          await handleTasks(responseData.tasks, responseData.context)
+          await handleJobs(responseData.jobs, responseData.context)
         }
       } catch (error) {
       }

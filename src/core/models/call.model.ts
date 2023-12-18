@@ -4,6 +4,7 @@ export const methodCallInput = z.object({
   classId: z.string(),
   methodName: z.string(),
   instanceId: z.string(),
+  context: z.any(),
   body: z.any(),
 })
 

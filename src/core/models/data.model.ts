@@ -81,7 +81,7 @@ export interface State<PUB = KeyValue, PRIV = KeyValue> {
   private: PRIV;
 }
 
-export interface Task {
+export interface Job {
   classId: string;
   instanceId: string;
   referenceKey?: {
@@ -98,5 +98,5 @@ export interface Data<I = any, O = any, PUB = KeyValue, PRIV = KeyValue> {
   state: State<PUB, PRIV>;
   request: Request<I>;
   response: Response<O>;
-  tasks: Task[];
+  jobs: Job[];
 }

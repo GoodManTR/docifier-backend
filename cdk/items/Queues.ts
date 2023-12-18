@@ -5,36 +5,36 @@ import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 
 export class QueuesStack extends Construct {
-  readonly taskImmDLQ: Queue
-  readonly taskDelayDLQ: Queue
-  public readonly taskImmQueue: Queue
-  public readonly taskDelayQueue: Queue
+  readonly jobImmDLQ: Queue
+  readonly jobDelayDLQ: Queue
+  public readonly jobImmQueue: Queue
+  public readonly jobDelayQueue: Queue
 
   constructor(scope: Construct, id: string) {
     super(scope, id)
 
-    this.taskImmDLQ = new Queue(this, 'AWSTaskImmDLQ', {
+    this.jobImmDLQ = new Queue(this, 'AWSJobImmDLQ', {
       visibilityTimeout: Duration.seconds(62),
     })
-    this.taskDelayDLQ = new Queue(this, 'AWSTaskDelayDLQ', {
+    this.jobDelayDLQ = new Queue(this, 'AWSJobDelayDLQ', {
       visibilityTimeout: Duration.seconds(62),
     })
 
-    this.taskImmQueue = new Queue(this, 'AWSTaskImmediateQueue', {
+    this.jobImmQueue = new Queue(this, 'AWSJobImmediateQueue', {
       visibilityTimeout: Duration.seconds(62),
-      queueName: 'AWSTaskImmediateQueue',
+      queueName: 'AWSJobImmediateQueue',
       deadLetterQueue: {
         maxReceiveCount: 3,
-        queue: this.taskImmDLQ,
+        queue: this.jobImmDLQ,
       },
     })
 
-    this.taskDelayQueue = new Queue(this, 'AWSTaskDelayingQueue', {
+    this.jobDelayQueue = new Queue(this, 'AWSJobDelayingQueue', {
       visibilityTimeout: Duration.seconds(62),
-      queueName: 'AWSTaskDelayingQueue',
+      queueName: 'AWSJobDelayingQueue',
       deadLetterQueue: {
         maxReceiveCount: 3,
-        queue: this.taskDelayDLQ,
+        queue: this.jobDelayDLQ,
       },
     })
   }

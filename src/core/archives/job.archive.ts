@@ -1,4 +1,4 @@
-import { Context, Task } from '../models/data.model'
+import { Context, Job } from '../models/data.model'
 import { chunk } from 'lodash'
 import { SendMessageBatchCommand, SQS } from '@aws-sdk/client-sqs'
 import { getQueueURL } from '../constants'
@@ -28,7 +28,7 @@ export async function sendToSchedulerSQS(scheduleMessage: ScheduleMessage[]): Pr
       promises.push(
         sqs.send(
           new SendMessageBatchCommand({
-            QueueUrl: getQueueURL(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'AWSTaskDelayingQueue'),
+            QueueUrl: getQueueURL(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'AWSJobDelayingQueue'),
             Entries: batch.map((m, i) => ({
               MessageBody: JSON.stringify(m),
               DelaySeconds: m.after,
@@ -44,7 +44,7 @@ export async function sendToSchedulerSQS(scheduleMessage: ScheduleMessage[]): Pr
       promises.push(
         sqs.send(
           new SendMessageBatchCommand({
-            QueueUrl: getQueueURL(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'AWSTaskImmediateQueue'),
+            QueueUrl: getQueueURL(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'AWSJobImmediateQueue'),
             Entries: batch.map((m, i) => ({
               MessageBody: JSON.stringify(m),
               Id: i.toString(),
@@ -57,24 +57,24 @@ export async function sendToSchedulerSQS(scheduleMessage: ScheduleMessage[]): Pr
   await Promise.all(promises)
 }
 
-export const handleTasks = async (tasks: Task[], context: Context): Promise<void> => {
-  if (!tasks.length) return Promise.resolve()
+export const handleJobs = async (jobs: Job[], context: Context): Promise<void> => {
+  if (!jobs.length) return Promise.resolve()
 
   const nowInMilliseconds = Date.now()
   const nowInSeconds = Math.floor(nowInMilliseconds / 1000)
 
-  const messages: ScheduleMessage[] = tasks.map((task) => ({
-    classId: task.classId,
-    instanceId: task.instanceId,
-    methodName: task.methodName,
-    body: task.body || {},
-    after: task.after,
-    startAt: nowInSeconds + task.after,
+  const messages: ScheduleMessage[] = jobs.map((job) => ({
+    classId: job.classId,
+    instanceId: job.instanceId,
+    methodName: job.methodName,
+    body: job.body || {},
+    after: job.after,
+    startAt: nowInSeconds + job.after,
     context: {
       ...context,
-      instanceId: task.instanceId,
-      methodName: task.methodName,
-      classId: task.classId,
+      instanceId: job.instanceId,
+      methodName: job.methodName,
+      classId: job.classId,
     },
   }))
 

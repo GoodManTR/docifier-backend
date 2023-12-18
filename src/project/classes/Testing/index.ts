@@ -47,11 +47,11 @@ export const get = async (data: Data) => {
 export const customMethod = async (data: Data) => {
     data.state.private.asd = 1
 
-    data.tasks.push({
+    data.jobs.push({
         classId: 'Testing',
         methodName: 'customMethod2',
         instanceId: 'default',
-        after: 901,
+        after: 20,
         body: {}
     })
 
@@ -63,7 +63,7 @@ export const customMethod = async (data: Data) => {
 
 export const customMethod2 = async (data: Data) => {
 
-    data.state.private.asd = 6
+    data.state.private.asd = 3
     data.response = new SuccessResponse({
         body: data.state.private
     }).response

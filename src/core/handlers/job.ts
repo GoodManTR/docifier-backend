@@ -3,7 +3,7 @@ import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
 import { Data, Template } from '../models/data.model'
-import { handleTasks } from '../archives/task.archive'
+import { handleJobs } from '../archives/job.archive'
 import { ScheduleMessage } from '../models/queue.model'
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn'
 import { getStateMachineArn } from '../constants'
@@ -43,7 +43,7 @@ export async function handler(event: SQSEvent): Promise<any> {
             statusCode: 200,
             body: {},
           },
-          tasks: [],
+          jobs: [],
         } as Data
 
         if (reqMethod === 'INIT' || reqMethod === 'GET') {
@@ -126,7 +126,7 @@ export async function handler(event: SQSEvent): Promise<any> {
             await putState(classId, instanceId, responseData.state)
           }
 
-          await handleTasks(responseData.tasks, responseData.context)
+          await handleJobs(responseData.jobs, responseData.context)
         }
       } else {
         const timeDiff = startAt - nowInSeconds
@@ -134,7 +134,7 @@ export async function handler(event: SQSEvent): Promise<any> {
         const sfStartAt = timeDiff >= oneYear ? oneYear - 3600 : startAt
         await sfn.send(
           new StartExecutionCommand({
-            stateMachineArn: getStateMachineArn(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'LongTaskMachine'),
+            stateMachineArn: getStateMachineArn(AWS_ACCOUNT_ID!, AWS_REGION_ID!, 'LongJobMachine'),
             name: context.requestId,
             input: JSON.stringify({ ...JSON.parse(record.body), startAt: new Date(sfStartAt * 1000).toISOString() }),
           }),

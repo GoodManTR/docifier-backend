@@ -1,12 +1,20 @@
 import zlib from 'zlib'
 import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { resolveStream } from './fileStorage.archive'
 import { getBucketName } from '../constants'
 import { Upload } from '@aws-sdk/lib-storage'
 
 const AWS_BUCKET_NAME = getBucketName()
 
 const s3 = new S3Client({})
+
+async function resolveStream(stream: any, raw = false): Promise<Buffer | string> {
+    return new Promise((resolve, reject) => {
+        const chunks: any[] = []
+        stream.on('data', (chunk: any) => chunks.push(chunk))
+        stream.on('error', reject)
+        stream.on('end', () => resolve(raw ? Buffer.concat(chunks) : Buffer.concat(chunks).toString('utf8')))
+    })
+}
 
 function getS3Path(classId: string, instanceId: string, fileName: string) {
       return ['instances', classId, instanceId, fileName].join('/') + '.json'

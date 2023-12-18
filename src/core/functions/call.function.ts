@@ -4,14 +4,14 @@ import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
 import { MethodCallInput, MethodCallOutput } from '../models/call.model'
 import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
-import { handleTasks } from '../archives/task.archive'
+import { handleJobs } from '../archives/job.archive'
 
 function generateHash(payload: object | string): string {
   return crypto.createHash('md5').update(JSON.stringify(payload)).digest('hex')
 }
 
 export const methodCall = async (input: MethodCallInput): Promise<MethodCallOutput> => {
-  const { classId, methodName: reqMethod, instanceId, body } = input
+  const { classId, methodName: reqMethod, instanceId, body, context } = input
 
   const instanceExists = await checkInstance(classId, instanceId)
   if (!instanceExists) {
@@ -26,11 +26,13 @@ export const methodCall = async (input: MethodCallInput): Promise<MethodCallOutp
     request: body || {},
     response: {},
     context: {
+      ...context,
       classId,
       instanceId,
       methodName: reqMethod,
+      identity: 'CLASS',
     },
-    tasks: [],
+    jobs: [],
   }
 
   const templateFilePath = `project/classes/${classId}/template.yml`
@@ -54,7 +56,7 @@ export const methodCall = async (input: MethodCallInput): Promise<MethodCallOutp
     await putState(classId, instanceId, responseData.state)
   }
 
-  await handleTasks(responseData.tasks, responseData.context)
+  await handleJobs(responseData.jobs, responseData.context)
 
   return {
     statusCode: responseData.response.statusCode,

@@ -1,5 +1,6 @@
 authorizer: index.authorizer
 init: index.init
+get: index.get
 getInstanceId: index.getInstanceId
 methods:
   - method: login
