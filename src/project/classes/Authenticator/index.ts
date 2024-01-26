@@ -1,11 +1,11 @@
 
-import { CustomError, Errors, SuccessResponse } from "../../packages/response-manager";
-import { Data, generateCustomToken, getInstance, getReferenceKey } from "../../../core";
+import { CustomError, Errors, SuccessResponse } from "response-manager";
+import { Data, generateCustomToken, getInstance, getReferenceKey } from "core";
 import { ClassData } from "./types";
 import { RegisterInput, registerInput } from "./models";
-import { generateHash } from "../../packages/utils/helpers";
-import { classIdentities, userIdentities } from "../../packages/utils/commonSchemas/common";
-import { isSuccess } from "../../packages/utils/project";
+import { generateHash } from "utils/helpers";
+import { classIdentities, userIdentities } from "utils/commonSchemas/common";
+import { isSuccess } from "utils/project";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,

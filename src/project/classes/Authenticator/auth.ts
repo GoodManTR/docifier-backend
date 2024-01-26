@@ -1,7 +1,7 @@
-import { generateCustomToken, getInstance, getReferenceKey } from '../../../core'
-import { CustomError, Errors, SuccessResponse } from '../../packages/response-manager'
-import { classIdentities, userIdentities } from '../../packages/utils/commonSchemas/common'
-import { generateHash } from '../../packages/utils/helpers'
+import { generateCustomToken, getInstance, getReferenceKey } from 'core'
+import { CustomError, Errors, SuccessResponse } from 'response-manager'
+import { classIdentities, userIdentities } from 'utils/commonSchemas/common'
+import { generateHash } from 'utils/helpers'
 import { LoginInput, loginInput } from './models'
 import { ClassData } from './types'
 

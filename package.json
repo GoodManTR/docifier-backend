@@ -2,7 +2,7 @@
   "name": "docifier",
   "version": "1.0.0",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
     "deploy": "npm run build && cdk deploy --profile bahadir --require-approval never",
     "clean": "rm -rf dist coverage tmp temp cdk.out build/tmp build/indexTmp",
     "cdk": "cdk",
@@ -56,6 +56,7 @@
     "@types/jsonpath": "0.2.0",
     "@types/jsonwebtoken": "9.0.1",
     "@types/lodash": "4.14.186",
+    "tsc-alias": "1.8.8",
     "@types/node": "18.15.0",
     "@types/sharp": "0.31.1",
     "@types/sinon": "10.0.13",
@@ -70,6 +71,6 @@
     "sinon": "14.0.1",
     "ts-node": "10.4.0",
     "tsconfig-paths": "3.13.0",
-    "typescript": "4.5.4"
+    "typescript": "5.3.3"
   }
 }

@@ -1,7 +1,7 @@
 
-import { authorizerCacheTime } from "../../packages/utils/cache-ages";
-import { SuccessResponse } from "../../packages/response-manager";
-import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "../../../core";
+import { authorizerCacheTime } from "utils/cache-ages";
+import { SuccessResponse } from "response-manager";
+import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "core";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -47,13 +47,13 @@ export const get = async (data: Data) => {
 export const customMethod = async (data: Data) => {
     data.state.private.asd = 1
 
-    data.jobs.push({
-        classId: 'Testing',
-        methodName: 'customMethod2',
-        instanceId: 'default',
-        after: 20,
-        body: {}
-    })
+    // data.jobs.push({
+    //     classId: 'Testing',
+    //     methodName: 'customMethod2',
+    //     instanceId: 'default',
+    //     after: 20,
+    //     body: {}
+    // })
 
     data.response = new SuccessResponse({
         body: data.state.private

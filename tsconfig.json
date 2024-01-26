@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2021",
+    "baseUrl": "src",
+    "lib": ["ES2017", "dom"],
     "module": "commonjs",
-    "lib": ["es2021", "dom"],
-    "outDir": "./dist",
-    "noImplicitAny": false,
-    "sourceMap": false,
+    "target": "ES6",
+    "sourceMap": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
@@ -14,11 +13,21 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictNullChecks": true,
+    "paths": {
+      "core/*": ["core/*"],
+      "core": ["core"],
+      "utils/*": ["project/packages/utils/*"],
+      "utils": ["project/packages/utils"],
+      "response-manager/*": ["project/packages/response-manager/*"],
+      "response-manager": ["project/packages/response-manager"]
+    },
     "types": ["node"],
-    "typeRoots": [
-      "./node_modules/@types"
-    ]
+    "outDir": "dist",
+    "typeRoots": ["node_modules/@types"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "coverage", "__tests__", "dist"]
+  "exclude": ["node_modules", "coverage", "__tests__", "dist"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
 }

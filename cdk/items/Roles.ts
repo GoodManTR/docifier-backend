@@ -46,9 +46,9 @@ export class Roles extends Construct {
                 effect: Effect.DENY,
                 resources: ['*'],
                 actions: [
-                    'logs:CreateLogGroup',
-                    'logs:CreateLogStream',
-                    'logs:PutLogEvents',
+                    // 'logs:CreateLogGroup',
+                    // 'logs:CreateLogStream',
+                    // 'logs:PutLogEvents',
                     'iam:CreateServiceLinkedRole',
                 ],
             }),

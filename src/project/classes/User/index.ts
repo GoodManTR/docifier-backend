@@ -1,10 +1,10 @@
 
-import { CustomError, Errors, SuccessResponse } from "../../packages/response-manager";
-import { Data, setReferenceKey } from "../../../core";
+import { CustomError, Errors, SuccessResponse } from "response-manager";
+import { Data, setReferenceKey } from "core";
 import { ClassData } from "./types";
 import { CreateUserInput, createUserInput } from "./models";
 import { v4 as uuidv4 } from 'uuid'
-import { classIdentities } from "../../packages/utils/commonSchemas/common";
+import { classIdentities } from "utils/commonSchemas/common";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,

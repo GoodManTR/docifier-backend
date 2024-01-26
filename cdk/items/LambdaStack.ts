@@ -4,6 +4,7 @@ import { Duration } from 'aws-cdk-lib'
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam'
 import { LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks'
 import { StateMachine, Wait, WaitTime } from 'aws-cdk-lib/aws-stepfunctions'
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs'
 
 export class LambdaStack extends Construct {
     public readonly apiHandlerLambda: Function
@@ -47,7 +48,7 @@ export class LambdaStack extends Construct {
       this.jobHandlerLambda = new Function(this, 'jobHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,
         code: codeAsset,
-        handler: 'core/handlers/job.handler',
+        handler: 'core/handlers/job.short',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(60),
         memorySize: 1769,
@@ -64,7 +65,7 @@ export class LambdaStack extends Construct {
       this.longJobHandlerLambda = new Function(this, 'LongJobHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,
         code: codeAsset,
-        handler: 'core/handlers/long-job.handler',
+        handler: 'core/handlers/job.long',
         timeout: Duration.minutes(15),
         memorySize: 1769,
         environment: {
