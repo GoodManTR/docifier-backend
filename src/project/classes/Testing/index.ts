@@ -1,6 +1,6 @@
 
 import { authorizerCacheTime } from "utils/cache-ages";
-import { SuccessResponse } from "response-manager";
+import { CustomError, SuccessResponse } from "response-manager";
 import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "core";
 
 const unauthorizedResponse = new SuccessResponse({
@@ -45,19 +45,34 @@ export const get = async (data: Data) => {
 }
 
 export const customMethod = async (data: Data) => {
-    data.state.private.asd = 1
+    try {
+        data.state.private.asd = 1
 
-    // data.jobs.push({
-    //     classId: 'Testing',
-    //     methodName: 'customMethod2',
-    //     instanceId: 'default',
-    //     after: 20,
-    //     body: {}
-    // })
+        const customToken = await generateCustomToken({
+            userId: 'asdasd',
+            identity: 'asdasd',
+            claims: {}
+        })
+        
+    
+        // data.jobs.push({
+        //     classId: 'Testing',
+        //     methodName: 'customMethod2',
+        //     instanceId: 'default',
+        //     after: 20,
+        //     body: {}
+        // })
+    
+        data.response = new SuccessResponse({
+            body: {
+                customToken,
+                data,
+            }
+        }).response
+    } catch (error) {
+        data.response = error instanceof CustomError ? error.friendlyResponse : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
+    }
 
-    data.response = new SuccessResponse({
-        body: data.state.private
-    }).response
     return data
 }
 

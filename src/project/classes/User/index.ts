@@ -28,11 +28,11 @@ export const init = async (data: ClassData<CreateUserInput>) => {
 
         await setReferenceKey({
             classId: classIdentities.Enum.User,
+            instanceId: data.context.instanceId!,
             key: {
                 name: 'email',
                 value: input.data.email,
             },
-            instanceId: data.context.instanceId!,
         })
     
         data.state.private = input.data

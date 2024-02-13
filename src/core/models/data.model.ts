@@ -24,6 +24,8 @@ export const context = z.object({
   sourceIp: z.string(),
   claims: z.record(z.any()).optional(),
   headers: z.record(z.any()).optional(),
+  isAnonymous: z.boolean(),
+  sessionId: z.string().optional(),
 })
 
 export type Context = z.infer<typeof context>

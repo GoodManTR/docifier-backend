@@ -2,7 +2,7 @@
 export * from './functions/database.function'
 export * from './functions/instace.function'
 export * from './functions/file.function'
-export * from './functions/auth.function'
+export { generateCustomToken } from './archives/auth.archive'
 export * from './functions/call.function'
 
 // models

@@ -27,6 +27,11 @@ export class LambdaStack extends Construct {
         environment: {
           AWS_ACCOUNT_ID: accountId,
           AWS_REGION_ID: region,
+          ACCESS_TOKEN_SECRET: 'so-secret',
+          REFRESH_TOKEN_SECRET: 'soso-secret',
+          CUSTOM_TOKEN_SECRET: 'sososo-secret',
+          FIREBASE_PROJECT_ID: 'docifier-6f1c1',
+          FIREBASE_API_KEY: 'apiiii'
         },
       })
 

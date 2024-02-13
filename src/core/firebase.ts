@@ -2,6 +2,17 @@ import serviceAccount from './firebase.json'
 import * as Firebase from 'firebase-admin'
 
 import DecodedIdToken = Firebase.auth.DecodedIdToken
+import { FirebaseEnvs } from './models/auth.model'
+
+export const EnvironmentVariables: { firebaseEnvs: FirebaseEnvs } = {
+
+    firebaseEnvs: {
+        iosAppId: process.env.FIREBASE_IOS_APP_ID!,
+        androidAppId: process.env.FIREBASE_ANDROID_APP_ID!,
+        webAppId: process.env.FIREBASE_WEB_APP_ID!,
+        gcmSenderId: process.env.FIREBASE_GCM_SENDER_ID!,
+    },
+}
 
 export class FirebaseApp {
     private db: FirebaseFirestore.Firestore

@@ -11,7 +11,7 @@ export const login = async (data: ClassData<LoginInput>) => {
     if (!input.success) {
       throw new CustomError({ error: Errors.Authenticator[5001] })
     }
-
+    
     const { email } = data.state.private
     const { password } = input.data
     const reqPasswordHash = generateHash(password)
