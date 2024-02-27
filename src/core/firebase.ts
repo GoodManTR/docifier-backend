@@ -5,7 +5,6 @@ import DecodedIdToken = Firebase.auth.DecodedIdToken
 import { FirebaseEnvs } from './models/auth.model'
 
 export const EnvironmentVariables: { firebaseEnvs: FirebaseEnvs } = {
-
     firebaseEnvs: {
         iosAppId: process.env.FIREBASE_IOS_APP_ID!,
         androidAppId: process.env.FIREBASE_ANDROID_APP_ID!,

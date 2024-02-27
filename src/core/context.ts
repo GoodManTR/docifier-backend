@@ -22,7 +22,7 @@ export async function createContext(event: APIGatewayProxyEventV2) {
   const methodName = params[2];
   const instanceId: string | undefined = action === 'CALL' ? params[3] : params[2]
   
-  const token = event.headers['_token'] as string
+  const token = event.headers['Authorization'] ? event.headers['Authorization'].substring(7) : (event.headers['authorization'] ? event.headers['authorization'].substring(7) : undefined)
   let identity: string, isAnonymous: boolean, userId: string, claims: any, sessionId: string | undefined
   if (token) {
     try {
@@ -42,9 +42,13 @@ export async function createContext(event: APIGatewayProxyEventV2) {
     claims = {}
   }
 
+  const platform = event.queryStringParameters?.__platform
+  const culture = event.queryStringParameters?.__culture
 
   return {
     classId,
+    culture,
+    platform,
     methodName,
     instanceId,
     headers: event.headers,

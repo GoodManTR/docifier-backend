@@ -112,7 +112,7 @@ export async function authWithCustomToken(customToken: string) {
 }
 
 export async function refreshToken(currentRefreshToken: string) {
-  const { sessionId, userId, claims, identity, anonymous } = verify(currentRefreshToken, ACCESS_TOKEN_SECRET!) as JwtPayload
+  const { sessionId, userId, claims, identity, anonymous } = verify(currentRefreshToken, REFRESH_TOKEN_SECRET!) as JwtPayload
 
   const { accessToken, refreshToken: newRefreshToken, firebase } = await generateAccessToken(userId, identity, sessionId, claims)
   const tokenData = {
@@ -178,8 +178,12 @@ export async function refreshToken(currentRefreshToken: string) {
   return { response: { accessToken, refreshToken: newRefreshToken, firebase }, tokenData }
 }
 
-export async function signOut(identity: string, userId: string, accessToken: string) {
-  const { sessionId, exp } = verify(accessToken, ACCESS_TOKEN_SECRET!, getVerifyOptionsWithMaxAge()) as JwtPayload
+export async function signOut(accessToken: string) {
+  const { sessionId, identity, userId, anonymous } = verify(accessToken, ACCESS_TOKEN_SECRET!, getVerifyOptionsWithMaxAge()) as JwtPayload
+  if (anonymous || !userId) {
+    throw new Error('Anonymous users cannot sign out')
+  }
+  
   const refreshTokens = await getRefreshTokens(getAuthPrimaryKey(userId), identity, sessionId)
 
   if (!refreshTokens.length) return

@@ -47,29 +47,53 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       switch (authEndpoint) {
         case authAPI.Values.auth: {
           const { response: responeseBody, tokenData } = await authWithCustomToken(JSON.parse(event.body || '{}').customToken)
-          const response = { statusCode: 200, body: JSON.stringify(responeseBody) }
+          const response = {
+            statusCode: 200,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Expose-Headers': '*',
+              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+              'Access-Control-Allow-Headers': '*',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(responeseBody),
+          }
           return response
         }
         case authAPI.Values.refresh: {
           const { response: responeseBody, tokenData } = await refreshToken(JSON.parse(event.body || '{}').refreshToken)
-          const response = { statusCode: 200, body: JSON.stringify(responeseBody) }
+          const response = {
+            statusCode: 200,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Expose-Headers': '*',
+              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+              'Access-Control-Allow-Headers': '*',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(responeseBody),
+          }
           return response
         }
         case authAPI.Values.signOut: {
-          const requestBody = JSON.parse(event.body || '{}')
-          const { identity, userId, isAnonymous, accessToken } = requestBody
-          if (isAnonymous || !userId) {
-            throw new Error('Anonymous users cannot sign out')
-          }
-          await signOut(identity, userId, accessToken)
+          const accessToken = (event.headers["Core-Authorization"] || event.headers["core-authorization"] || '').substring(7)
+
+          await signOut(accessToken)
 
           return {
             statusCode: 200,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Expose-Headers': '*',
+              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+              'Access-Control-Allow-Headers': '*',
+              'Content-Type': 'application/json',
+            },
             body: JSON.stringify({}),
           }
         }
         default: {
-          throw new Error(`TOKEN handler recived unknown endpoint: ${authEndpoint}`)
+          throw new Error(`AUTH handler recived unknown endpoint: ${authEndpoint}`)
         }
       }
     }
@@ -148,7 +172,14 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
         if (!templateContent.get) {
           return {
             statusCode: 200,
-            body: JSON.stringify({}),
+            body: JSON.stringify({
+              instanceId: lastInstanceId,
+              methods: templateContent.methods.map((m) => ({
+                method: m.method,
+                type: m.type,
+              })),
+              isNewInstance: false,
+            }),
           }
         }
 
@@ -164,7 +195,19 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
         await putState(classId, lastInstanceId, responseData.state)
 
-        return responseData.response
+        return {
+          statusCode: responseData.response.statusCode,
+          headers: responseData.response.headers,
+          body: JSON.stringify({
+            response: JSON.parse(responseData.response.body),
+            instanceId: responseData.context.instanceId,
+            methods: templateContent.methods.map((m) => ({
+              method: m.method,
+              type: m.type,
+            })),
+            isNewInstance: false,
+          }),
+        }
       }
 
       if (instanceId) {
@@ -186,7 +229,19 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
 
       await putState(classId, lastInstanceId, responseData.state)
 
-      return responseData.response
+      return {
+        statusCode: responseData.response.statusCode,
+        headers: responseData.response.headers,
+        body: JSON.stringify({
+          response: JSON.parse(responseData.response.body),
+          instanceId: responseData.context.instanceId,
+          methods: templateContent.methods.map((m) => ({
+            method: m.method,
+            type: m.type,
+          })),
+          isNewInstance: true,
+        }),
+      }
     }
   } catch (error) {
     if (error instanceof CustomError) {

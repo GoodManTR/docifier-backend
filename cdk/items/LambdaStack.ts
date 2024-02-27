@@ -30,10 +30,17 @@ export class LambdaStack extends Construct {
           ACCESS_TOKEN_SECRET: 'so-secret',
           REFRESH_TOKEN_SECRET: 'soso-secret',
           CUSTOM_TOKEN_SECRET: 'sososo-secret',
-          FIREBASE_PROJECT_ID: 'docifier-6f1c1',
-          FIREBASE_API_KEY: 'apiiii'
+          FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID!,
+          FIREBASE_API_KEY: process.env.FIREBASE_API_KEY!,
+          FIREBASE_IOS_APP_ID: process.env.FIREBASE_IOS_APP_ID!,
+          FIREBASE_ANDROID_APP_ID: process.env.FIREBASE_ANDROID_APP_ID!,
+          FIREBASE_WEB_APP_ID: process.env.FIREBASE_WEB_APP_ID!,
+          FIREBASE_GCM_SENDER_ID: process.env.FIREBASE_GCM_SENDER_ID!,
         },
       })
+
+      console.log(process.env.FIREBASE_GCM_SENDER_ID);
+      
 
       this.optionsHandlerLambda = new Function(this, 'optionsHandlerLambda', {
         runtime: Runtime.NODEJS_16_X,

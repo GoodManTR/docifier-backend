@@ -16,6 +16,8 @@ export interface Template {
 export const context = z.object({
   classId: z.string(),
   methodName: z.string(),
+  culture: z.string().optional(),
+  platform: z.string().optional(),
   instanceId: z.string().optional(),
   identity: z.string(),
   requestId: z.string(),

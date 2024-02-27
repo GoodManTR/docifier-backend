@@ -5,7 +5,7 @@ set -e
 
 npm run build
 npm run copy-templates
-npm run create-layer
+#npm run create-layer
 
 export AWS_ACCOUNT_ID="959503346295"
 export AWS_GATEWAY_CERTIFICATE_ARN="arn:aws:acm:eu-west-1:959503346295:certificate/b5b26d31-12a9-4f25-a116-9863e27b0cc5"
@@ -13,6 +13,13 @@ export AWS_API_CERTIFICATE_ARN="arn:aws:acm:us-east-1:959503346295:certificate/1
 export AWS_API_TYPE=""
 export AWS_REGION="eu-west-1"
 export AWS_DOMAIN='api.goodmanio.net'
+
+export FIREBASE_IOS_APP_ID="1:331050905275:ios:71750e3dfa8a2c9935839e"
+export FIREBASE_ANDROID_APP_ID="1:331050905275:android:188bf142ff43e3de35839e"
+export FIREBASE_WEB_APP_ID="1:331050905275:web:a0f0c5ca6f888a5d35839e"
+export FIREBASE_GCM_SENDER_ID="331050905275"
+export FIREBASE_API_KEY="AIzaSyBOanVH4W5xRWjl1g2kZo9OdU4WMCdoRJE"
+export FIREBASE_PROJECT_ID="docifier-6f1c1"
 
 # npm run cdk -- -a "ts-node ./cdk/DocifierStack.ts" synth --context @aws-cdk/core:stackRelativeExports="false" --context @aws-cdk/core:newStyleStackSynthesis="true" --context @aws-cdk/core:bootstrapQualifier="hnb659fds" DocifierStack -q --profile docifier-bahadir
 # echo "synth finished"
