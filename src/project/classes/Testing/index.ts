@@ -1,7 +1,7 @@
 
 import { authorizerCacheTime } from "utils/cache-ages";
 import { CustomError, SuccessResponse } from "response-manager";
-import { Data, deleteFile, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "core";
+import { Data, deleteFile, deleteInstance, generateCustomToken, getFile, getInstance, methodCall, setFile, writeToDatabase } from "core";
 
 const unauthorizedResponse = new SuccessResponse({
     statusCode: 403,
@@ -53,26 +53,38 @@ export const customMethod = async (data: Data) => {
             identity: 'asdasd',
             claims: {}
         })
+
+        const res = await methodCall({
+            classId: 'Testing',
+            methodName: 'customMethod3',
+            body: {}
+        })
         
-    
-        // data.jobs.push({
-        //     classId: 'Testing',
-        //     methodName: 'customMethod2',
-        //     instanceId: 'default',
-        //     after: 20,
-        //     body: {}
-        // })
+        data.jobs.push({
+            classId: 'Testing',
+            methodName: 'customMethod3',
+            after: 20,
+            body: {}
+        })
+
+        data.jobs.push({
+            classId: 'Testing',
+            instanceId: 'default',
+            methodName: 'customMethod2',
+            after: 0,
+            body: {}
+        })
     
         data.response = new SuccessResponse({
             body: {
                 customToken,
+                res,
                 data,
             }
         }).response
     } catch (error) {
         data.response = error instanceof CustomError ? error.friendlyResponse : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
     }
-
     return data
 }
 
@@ -81,6 +93,15 @@ export const customMethod2 = async (data: Data) => {
     data.state.private.asd = 3
     data.response = new SuccessResponse({
         body: data.state.private
+    }).response
+    return data
+}
+
+export const customMethod3 = async (data: Data) => {
+    data.response = new SuccessResponse({
+        body: {
+            static: true
+        }
     }).response
     return data
 }

@@ -10,7 +10,7 @@ export class ServiceLayer extends Construct {
 
         this.layer = new LayerVersion(this, id, {
             code: Code.fromAsset(path.join(defaultSourcePath, 'temp', 'modules.zip')),
-            compatibleRuntimes: [Runtime.NODEJS_16_X],
+            compatibleRuntimes: [Runtime.NODEJS_18_X],
             license: 'MIT',
             description: 'AWS service node modules',
         })

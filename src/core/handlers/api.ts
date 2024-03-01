@@ -1,15 +1,11 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import * as path from 'path'
-import * as fs from 'fs/promises'
-import * as yaml from 'js-yaml'
-import firebaseAdmin from 'firebase-admin'
 import { createContext } from '../context'
-import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
-import { Context, Data, Template } from '../models/data.model'
+import { Context, Data } from '../models/data.model'
 import { CustomError } from '../packages/error-response'
-import { handleJobs } from '../archives/job.archive'
 import { authAPI } from 'core/models/auth.model'
 import { authWithCustomToken, refreshToken, signOut } from 'core/archives/auth.archive'
+import { runFunction } from 'core/helpers'
+import { runFunctionEnum } from 'core/models/call.model'
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context): Data => {
   let queryStringParams = event.queryStringParameters ?? {}
@@ -46,7 +42,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       const authEndpoint = params[1]
       switch (authEndpoint) {
         case authAPI.Values.auth: {
-          const { response: responeseBody, tokenData } = await authWithCustomToken(JSON.parse(event.body || '{}').customToken)
+          const { response: responeseBody } = await authWithCustomToken(JSON.parse(event.body || '{}').customToken)
           const response = {
             statusCode: 200,
             headers: {
@@ -61,7 +57,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
           return response
         }
         case authAPI.Values.refresh: {
-          const { response: responeseBody, tokenData } = await refreshToken(JSON.parse(event.body || '{}').refreshToken)
+          const { response: responeseBody } = await refreshToken(JSON.parse(event.body || '{}').refreshToken)
           const response = {
             statusCode: 200,
             headers: {
@@ -76,7 +72,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
           return response
         }
         case authAPI.Values.signOut: {
-          const accessToken = (event.headers["Core-Authorization"] || event.headers["core-authorization"] || '').substring(7)
+          const accessToken = (event.headers['Core-Authorization'] || event.headers['core-authorization'] || '').substring(7)
 
           await signOut(accessToken)
 
@@ -109,139 +105,38 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
     const reqMethod: string | undefined = params[2]
     const instanceId: string | undefined = action === 'CALL' ? params[3] : params[2]
 
-    const templateFilePath = `project/classes/${classId}/template.yml`
-    const fileContents = await fs.readFile(templateFilePath, 'utf8')
-    const templateContent = yaml.load(fileContents) as Template
-
-    if (action === 'CALL') {
-      const instanceExists = await checkInstance(classId, instanceId)
-      if (!instanceExists) {
-        throw new Error(`Instance with id ${instanceId} does not exist in class ${classId}`)
-      }
-    }
-
     // Authorizer
-    const [authorizerFile, authorizerMethod] = templateContent.authorizer.split('.')
-    const authorizerRequiredModule = require(`../../project/classes/${classId}/${authorizerFile}.js`)
-    const authorizerHandler = authorizerRequiredModule[authorizerMethod]
-
-    const authorizerResponse = await authorizerHandler(data)
+    const authorizerResponse = await runFunction({
+      classId,
+      instanceId,
+      data,
+      type: runFunctionEnum.Enum.authorizer,
+    })
     if (authorizerResponse.statusCode !== 200) {
       return authorizerResponse
     }
 
     if (action === 'CALL') {
-      data.state = await fetchStateFromS3(classId, instanceId)
-
-      // Method
-      const method = templateContent.methods.find((m) => m.method === reqMethod)
-      if (!method) {
-        throw new Error(`Method "${reqMethod}" is not defined in template.yml`)
-      }
-
-      const [handlerFile, methodName] = method.handler.split('.')
-      const requiredModule = require(`../../project/classes/${classId}/${handlerFile}.js`)
-      const methodHandler = requiredModule[methodName]
-
-      const responseData: Data = await methodHandler(data)
-
-      if (method.type === 'WRITE') {
-        await putState(classId, instanceId, responseData.state)
-      }
-
-      await handleJobs(responseData.jobs, responseData.context)
+      const responseData: Data = await runFunction({
+        classId,
+        instanceId,
+        methodName: reqMethod,
+        data,
+        type: runFunctionEnum.Enum.method,
+      })
 
       return responseData.response
     }
 
     if (action === 'INSTANCE') {
-      // getInstanceId
-      const [instanceIdMethodFile, instanceIdMethod] = templateContent.getInstanceId.split('.')
-      const instanceIdMethodRequiredModule = require(`../../project/classes/${classId}/${instanceIdMethodFile}.js`)
-      const instanceIdHandler = instanceIdMethodRequiredModule[instanceIdMethod]
+      const responseData: Data = await runFunction({
+        classId,
+        instanceId,
+        data,
+        type: runFunctionEnum.Enum.instance,
+      })
 
-      const responseInstanceId = await instanceIdHandler(data)
-
-      const lastInstanceId = instanceId ?? responseInstanceId
-      data.context.instanceId = lastInstanceId
-
-      const instanceExists = await checkInstance(classId, lastInstanceId)
-
-      // get
-      if (instanceExists) {
-        if (!templateContent.get) {
-          return {
-            statusCode: 200,
-            body: JSON.stringify({
-              instanceId: lastInstanceId,
-              methods: templateContent.methods.map((m) => ({
-                method: m.method,
-                type: m.type,
-              })),
-              isNewInstance: false,
-            }),
-          }
-        }
-
-        // get
-        data.context.methodName = 'GET'
-        data.state = await fetchStateFromS3(classId, lastInstanceId)
-
-        const [getMethodFile, getMethod] = templateContent.get.split('.')
-        const getMethodRequiredModule = require(`../../project/classes/${classId}/${getMethodFile}.js`)
-        const getHandler = getMethodRequiredModule[getMethod]
-
-        const responseData = await getHandler(data)
-
-        await putState(classId, lastInstanceId, responseData.state)
-
-        return {
-          statusCode: responseData.response.statusCode,
-          headers: responseData.response.headers,
-          body: JSON.stringify({
-            response: JSON.parse(responseData.response.body),
-            instanceId: responseData.context.instanceId,
-            methods: templateContent.methods.map((m) => ({
-              method: m.method,
-              type: m.type,
-            })),
-            isNewInstance: false,
-          }),
-        }
-      }
-
-      if (instanceId) {
-        throw new Error(`Instance with id ${lastInstanceId} does not exist in class ${classId}`)
-      }
-
-      if (!templateContent.init) {
-        throw new Error('Init method is not defined in template.yml')
-      }
-
-      // init
-      data.context.methodName = 'INIT'
-
-      const [initMethodFile, initMethod] = templateContent.init.split('.')
-      const initMethodRequiredModule = require(`../../project/classes/${classId}/${initMethodFile}.js`)
-      const initHandler = initMethodRequiredModule[initMethod]
-
-      const responseData = await initHandler(data)
-
-      await putState(classId, lastInstanceId, responseData.state)
-
-      return {
-        statusCode: responseData.response.statusCode,
-        headers: responseData.response.headers,
-        body: JSON.stringify({
-          response: JSON.parse(responseData.response.body),
-          instanceId: responseData.context.instanceId,
-          methods: templateContent.methods.map((m) => ({
-            method: m.method,
-            type: m.type,
-          })),
-          isNewInstance: true,
-        }),
-      }
+      return responseData
     }
   } catch (error) {
     if (error instanceof CustomError) {

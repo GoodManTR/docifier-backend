@@ -9,7 +9,7 @@ export interface Template {
   methods: {
     method: string
     handler: string
-    type: 'READ' | 'WRITE'
+    type: 'READ' | 'WRITE' | 'STATIC'
   }[]
 }
 
@@ -87,7 +87,7 @@ export interface State<PUB = KeyValue, PRIV = KeyValue> {
 
 export interface Job {
   classId: string;
-  instanceId: string;
+  instanceId?: string;
   referenceKey?: {
       name: string;
       value: string;

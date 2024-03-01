@@ -38,7 +38,7 @@ export class DocifierStack extends Stack {
       code: Code.fromAsset(path.join('temp', 'layer.zip'), {
         assetHash: getLayerHash('../app-package.json'),
       }),
-      compatibleRuntimes: [Runtime.NODEJS_16_X],
+      compatibleRuntimes: [Runtime.NODEJS_18_X],
       license: 'MIT',
       description: 'Node Modules',
     })

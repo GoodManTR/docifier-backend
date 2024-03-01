@@ -1,74 +1,93 @@
 import zlib from 'zlib'
-import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, DeleteObjectsCommand, GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getBucketName } from '../constants'
 import { Upload } from '@aws-sdk/lib-storage'
+import { DeleteInstanceInput } from 'core/models/instance.model'
 
 const AWS_BUCKET_NAME = getBucketName()
 
 const s3 = new S3Client({})
 
 async function resolveStream(stream: any, raw = false): Promise<Buffer | string> {
-    return new Promise((resolve, reject) => {
-        const chunks: any[] = []
-        stream.on('data', (chunk: any) => chunks.push(chunk))
-        stream.on('error', reject)
-        stream.on('end', () => resolve(raw ? Buffer.concat(chunks) : Buffer.concat(chunks).toString('utf8')))
-    })
+  return new Promise((resolve, reject) => {
+    const chunks: any[] = []
+    stream.on('data', (chunk: any) => chunks.push(chunk))
+    stream.on('error', reject)
+    stream.on('end', () => resolve(raw ? Buffer.concat(chunks) : Buffer.concat(chunks).toString('utf8')))
+  })
 }
 
 function getS3Path(classId: string, instanceId: string, fileName: string) {
-      return ['instances', classId, instanceId, fileName].join('/') + '.json'
+  return ['instances', classId, instanceId, fileName].join('/') + '.json'
 }
 
 export async function putState(classId: string, instanceId: string, data: any): Promise<void> {
-    const finalData = JSON.stringify(data)
-    const zippedData = zlib.gzipSync(finalData)
-    const instanceDataS3Path = getS3Path(classId, instanceId!, 'instanceData')
+  const finalData = JSON.stringify(data)
+  const zippedData = zlib.gzipSync(finalData)
+  const instanceDataS3Path = getS3Path(classId, instanceId!, 'instanceData')
 
-    const ops: Promise<any>[] = []
-    ops.push(
-        new Upload({
-            client: s3,
-            params: {
-                Bucket: AWS_BUCKET_NAME,
-                Key: instanceDataS3Path,
-                Body: zippedData,
-                ContentType: 'application/json',
-                ContentEncoding: 'gzip',
-            },
-        }).done(),
-    )
+  const ops: Promise<any>[] = []
+  ops.push(
+    new Upload({
+      client: s3,
+      params: {
+        Bucket: AWS_BUCKET_NAME,
+        Key: instanceDataS3Path,
+        Body: zippedData,
+        ContentType: 'application/json',
+        ContentEncoding: 'gzip',
+      },
+    }).done(),
+  )
 
-    await Promise.all(ops)
+  await Promise.all(ops)
 }
 
 export async function fetchStateFromS3(classId: string, instanceId: string): Promise<any> {
-    const path = getS3Path(classId, instanceId, 'instanceData')
-    const instanceDataBlob = await s3.send(
-        new GetObjectCommand({
-            Bucket: AWS_BUCKET_NAME,
-            Key: path,
-        }),
-    )
-    if (!instanceDataBlob || !instanceDataBlob.Body) {
-        throw new Error('eror')
-    }
-
-    const content = zlib.unzipSync(await resolveStream(instanceDataBlob.Body, true)).toString('utf8')
-  
-    return JSON.parse(content) 
+  const path = getS3Path(classId, instanceId, 'instanceData')
+  const instanceDataBlob = await s3.send(
+    new GetObjectCommand({
+      Bucket: AWS_BUCKET_NAME,
+      Key: path,
+    }),
+  )
+  if (!instanceDataBlob || !instanceDataBlob.Body) {
+    throw new Error('eror')
   }
 
-  export async function checkInstance(classId: string, instanceId: string): Promise<boolean> {
-    try {
-        if (!instanceId) return false
+  const content = zlib.unzipSync(await resolveStream(instanceDataBlob.Body, true)).toString('utf8')
 
-        const instanceDataPath = getS3Path(classId, instanceId!, 'instanceData')
-        await s3.send(new HeadObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: instanceDataPath }))
-
-        return true
-    } catch (e) {
-        // ? if ((e as NotFound)?.$metadata?.httpStatusCode !== 404) console.log(e)
-        return false
-    }
+  return JSON.parse(content)
 }
+
+export async function checkInstance(classId: string, instanceId?: string): Promise<boolean> {
+  try {
+    if (!instanceId) return false
+
+    const instanceDataPath = getS3Path(classId, instanceId!, 'instanceData')
+    await s3.send(new HeadObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: instanceDataPath }))
+
+    return true
+  } catch (e) {
+    // ? if ((e as NotFound)?.$metadata?.httpStatusCode !== 404) console.log(e)
+    return false
+  }
+}
+
+export async function deleteInstanceFromS3(input: DeleteInstanceInput): Promise<boolean> {
+    try {
+      const instanceDataPath = getS3Path(input.classId, input.instanceId, 'instanceData')
+      await s3.send(
+        new DeleteObjectCommand({
+            Bucket: AWS_BUCKET_NAME,
+            Key: instanceDataPath,
+        }),
+    )
+  
+      return true
+    } catch (e) {
+      // ? if ((e as NotFound)?.$metadata?.httpStatusCode !== 404) console.log(e)
+      return false
+    }
+  }
+  

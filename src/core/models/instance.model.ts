@@ -21,6 +21,13 @@ export const getInstanceInput = z.object({
 })
 export type GetInstanceInput = z.infer<typeof getInstanceInput>
 
+export const deleteInstanceInput = z.object({
+  classId: z.string(),
+  instanceId: z.string(),
+})
+export type DeleteInstanceInput = z.infer<typeof deleteInstanceInput>
+
+
 export const getInstanceOutput = z.object({
   statusCode: z.number(),
   headers: z.record(z.any()).optional(),

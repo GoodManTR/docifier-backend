@@ -1,9 +1,12 @@
 import { z } from 'zod'
 
+export const runFunctionEnum = z.enum(['authorizer', 'instance', 'method', 'getInstanceId'])
+export type RunFunctionEnum = z.infer<typeof runFunctionEnum>
+
 export const methodCallInput = z.object({
   classId: z.string(),
   methodName: z.string(),
-  instanceId: z.string(),
+  instanceId: z.string().optional(),
   context: z.any(),
   body: z.any(),
 })

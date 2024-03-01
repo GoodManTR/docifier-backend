@@ -1,13 +1,15 @@
-import { checkInstance, fetchStateFromS3, putState } from '../archives/state.archive'
+import { checkInstance, deleteInstanceFromS3, fetchStateFromS3, putState } from '../archives/state.archive'
 import * as fs from 'fs/promises'
 import * as yaml from 'js-yaml'
-import { DeleteReferenceKeyInput, DeleteReferenceKeyOutput, GetInstanceInput, GetInstanceOutput, GetReferenceKeyInput, GetReferenceKeyOutput, SetReferenceKeyInput, SetReferenceKeyOutput } from '../models/instance.model'
+import { DeleteInstanceInput, DeleteReferenceKeyInput, DeleteReferenceKeyOutput, GetInstanceInput, GetInstanceOutput, GetReferenceKeyInput, GetReferenceKeyOutput, SetReferenceKeyInput, SetReferenceKeyOutput } from '../models/instance.model'
 import { Data, Template } from '../models/data.model'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { GENERAL_TABLE } from '../constants'
 import { isSuccess } from '../helpers'
 import { handleJobs } from '../archives/job.archive'
+import { chunk } from 'lodash'
+import { deleteFromReferenceKeyTable, getReferenceKeys } from 'core/archives/reference.archive'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -160,6 +162,22 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
   }
 
   return res
+}
+
+export async function deleteInstance(input: DeleteInstanceInput): Promise<void> {
+  const lookUpKeys = await Promise.allSettled(await getReferenceKeys(input)).then((results) =>
+    results
+      .map((result) => {
+        if (result.status === 'fulfilled') return result.value
+        else return []
+      })
+      .reduce((final: any[], items: any[]) => {
+        if (Array.isArray(items) && items.length) final.push(...items)
+        return final
+      }, []),
+  )
+  for (const items of chunk(lookUpKeys, 25)) await deleteFromReferenceKeyTable(items)
+  await deleteInstanceFromS3(input)
 }
 
 export const getReferenceKey = async (input: GetReferenceKeyInput): Promise<GetReferenceKeyOutput> => {

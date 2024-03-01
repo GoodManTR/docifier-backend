@@ -11,4 +11,7 @@ methods:
     handler: index.customMethod2
     type: WRITE
 
+  - method: customMethod3
+    handler: index.customMethod3
+    type: STATIC
 

@@ -36,7 +36,7 @@ export async function createContext(event: APIGatewayProxyEventV2) {
       throw new CustomError('System', 1000, 403, { issues: 'Your access token is invalid or expired' }).friendlyResponse
     }
   } else {
-    identity = 'anonymous'
+    identity = 'anonymous_user'
     isAnonymous = true
     userId = 'anonymous'
     claims = {}

@@ -16,7 +16,7 @@ export class LambdaStack extends Construct {
       super(scope, id)
 
       this.apiHandlerLambda = new Function(this, 'apiHandlerLambda', {
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         code: codeAsset,
         handler: 'core/handlers/api.handler',
         architecture: Architecture.ARM_64,
@@ -39,11 +39,8 @@ export class LambdaStack extends Construct {
         },
       })
 
-      console.log(process.env.FIREBASE_GCM_SENDER_ID);
-      
-
       this.optionsHandlerLambda = new Function(this, 'optionsHandlerLambda', {
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         code: codeAsset,
         handler: 'core/handlers/options.handler',
         architecture: Architecture.ARM_64,
@@ -58,9 +55,9 @@ export class LambdaStack extends Construct {
       })
 
       this.jobHandlerLambda = new Function(this, 'jobHandlerLambda', {
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         code: codeAsset,
-        handler: 'core/handlers/job.short',
+        handler: 'core/handlers/job.handler',
         architecture: Architecture.ARM_64,
         timeout: Duration.seconds(60),
         memorySize: 1769,
@@ -75,9 +72,9 @@ export class LambdaStack extends Construct {
       // long job handler
 
       this.longJobHandlerLambda = new Function(this, 'LongJobHandlerLambda', {
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         code: codeAsset,
-        handler: 'core/handlers/job.long',
+        handler: 'core/handlers/long-job.handler',
         timeout: Duration.minutes(15),
         memorySize: 1769,
         environment: {
