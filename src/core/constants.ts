@@ -1,4 +1,5 @@
 export const GENERAL_TABLE = 'DatabaseTable'
+export const CONCURRENCY_TABLE = 'ConcurrencyTable'
 
 export const getQueueURL = (accountId: string, region: string, queueName: string) => {
       return `https://sqs.${region}.amazonaws.com/${accountId}/${queueName}`

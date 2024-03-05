@@ -4,6 +4,8 @@ import { Data, Template } from './models/data.model'
 import { RunFunctionEnum, runFunctionEnum } from './models/call.model'
 import { checkInstance, fetchStateFromS3, putState } from './archives/state.archive'
 import { handleJobs } from './archives/job.archive'
+import { isConcurrencyLocked, lockConcurrency, unlockConcurrency } from './archives/concurrency.archive'
+import { CustomError, Errors } from './packages/core-response-manager'
 
 export const isSuccess = (statusCode = 0): boolean => statusCode >= 200 && statusCode < 300
 
@@ -23,19 +25,28 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
   if (type === runFunctionEnum.Enum.method) {
     const templateMethod = templateContent.methods.find((m) => m.method === methodName)
     if (!templateMethod) {
-      throw new Error(`Method "${methodName}" is not defined in template.yml`)
+      throw new CustomError({ error: Errors.System[5002], params: { methodName: methodName! } })
     }
 
     const isMethodStatic = templateMethod.type === 'STATIC'
 
     if (!isMethodStatic && !instanceId) {
-      throw new Error(`Instance id is required for method "${methodName}" in class ${classId}`)
+      throw new CustomError({ error: Errors.System[5003], params: { methodName: methodName!, classId } })
     }
 
     if (!isMethodStatic) {
       const instanceExists = await checkInstance(classId, instanceId)
       if (!instanceExists) {
-        throw new Error(`Instance with id ${instanceId} does not exist in class ${classId}`)
+        throw new CustomError({ error: Errors.System[5004], params: { instanceId: instanceId!, classId } })
+      }
+
+      if (templateMethod.type === 'WRITE') {
+        const isConcurrencyLcoked = await isConcurrencyLocked({ classId, instanceId: instanceId! })
+        if (isConcurrencyLcoked) {
+          throw new CustomError({ error: Errors.System[5005], params: { instanceId: instanceId!, classId } })
+        }
+
+        await lockConcurrency({ classId, instanceId: instanceId! })
       }
     }
 
@@ -49,6 +60,7 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
 
     if (templateMethod.type === 'WRITE') {
       await putState(classId, instanceId!, responseData.state)
+      await unlockConcurrency({ classId, instanceId: instanceId! })
     }
 
     await handleJobs(responseData.jobs, responseData.context)
@@ -100,11 +112,12 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
     }
 
     if (instanceId) {
-      throw new Error(`Instance with id ${instanceId} does not exist in class ${classId}`)
+      throw new CustomError({ error: Errors.System[5004], params: { instanceId: instanceId!, classId } })
     }
 
     if (!templateContent.init) {
-      throw new Error('Init method is not defined in template.yml')
+      // Init method is not defined in template.yml
+      throw new CustomError({ error: Errors.System[5006] })
     }
 
     data.context.methodName = 'INIT'

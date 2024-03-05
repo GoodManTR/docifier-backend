@@ -3,13 +3,7 @@ import { Construct } from 'constructs'
 
 export class DynamoTable extends Construct {
     public readonly DatabaseTable: Table
-    public readonly authenticationTable: Table
-    public readonly profileTable: Table
-    public readonly sessionTable: Table
-    public readonly docTable: Table
-    public readonly docTreeTable: Table
-    public readonly imageTable: Table
-    public readonly docSheetTable: Table
+    public readonly ConcurrencyTable: Table
 
     constructor(scope: Construct, id: string) {
       super(scope, id);
@@ -27,6 +21,16 @@ export class DynamoTable extends Construct {
         pointInTimeRecovery: true,
         timeToLiveAttribute: 'expiresAt',
         tableName: 'DatabaseTable',
+      })
+
+      this.ConcurrencyTable = new Table(this, 'ConcurrencyTable', {
+        partitionKey: {
+          name: 'part',
+          type: AttributeType.STRING,
+        },
+        billingMode: BillingMode.PAY_PER_REQUEST,
+        timeToLiveAttribute: 'expiresAt',
+        tableName: 'ConcurrencyTable',
       })
 
     }

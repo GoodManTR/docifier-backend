@@ -2,12 +2,6 @@ import { z } from "zod"
 
 interface TErrorMessages {
     System: BaseError[]
-    Authenticator: BaseError[]
-    Image: BaseError[]
-    Api: BaseError[]
-    User: BaseError[]
-    Documentation: BaseError[]
-    Document: BaseError[]
 }
 
 type Locales = 'tr_TR' | 'en_US' | 'tr-tr' | 'en-us'
@@ -85,7 +79,8 @@ export class CustomError<T = unknown> extends Error {
             Object.setPrototypeOf(this, CustomError.prototype)
         } else if (typeof arguments_[0] === 'object') {
             const { error, addons, params } = arguments_[0] as CustomErrorArguments<T>
-            const localization = 'tr_TR'
+            let { localization = 'en_US' } = arguments_[0] as CustomErrorArguments<T>
+
             const { classId, statusCode, code, message, title } = error
             this.message = localization && message[localization] ? (message[localization] as string) : message.en_US ?? 'no message provided'
             if (title) {

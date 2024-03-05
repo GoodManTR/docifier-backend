@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { verify } from 'jsonwebtoken';
 import { getVerifyOptionsWithMaxAge } from './archives/common.archive';
 import { AccessTokenPayload } from './models/auth.model';
-import { CustomError } from './packages/error-response';
+import { CustomError } from './packages/core-response-manager';
 
 const { ACCESS_TOKEN_SECRET } = process.env
 

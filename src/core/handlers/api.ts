@@ -1,11 +1,11 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { createContext } from '../context'
 import { Context, Data } from '../models/data.model'
-import { CustomError } from '../packages/error-response'
 import { authAPI } from 'core/models/auth.model'
 import { authWithCustomToken, refreshToken, signOut } from 'core/archives/auth.archive'
 import { runFunction } from 'core/helpers'
 import { runFunctionEnum } from 'core/models/call.model'
+import { CustomError, Errors } from 'core/packages/core-response-manager'
 
 const prepareData = (event: APIGatewayProxyEventV2, context: Context): Data => {
   let queryStringParams = event.queryStringParameters ?? {}
@@ -89,14 +89,18 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
           }
         }
         default: {
-          throw new Error(`AUTH handler recived unknown endpoint: ${authEndpoint}`)
+          // AUTH handler recived unknown endpoint: {{authEndpoint}}
+          throw new CustomError({ error: Errors.System[5007], params: { authEndpoint } })
         }
       }
     }
 
     // CALL OR INSTANCE
     const paramCount = action === 'CALL' ? 3 : 2
-    if (params.length < paramCount) throw new Error('Router http handler recived invalid path parameters')
+    if (params.length < paramCount) {
+      throw new CustomError({ error: Errors.System[5001] })
+    }
+
 
     const context = await createContext(event)
     const data = prepareData(event, context)
@@ -139,11 +143,6 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<any> {
       return responseData
     }
   } catch (error) {
-    if (error instanceof CustomError) {
-      return error.friendlyResponse
-    } else {
-      const errorMessage = (error as Error).message
-      return new CustomError('System', 1000, 500, { issues: error }).friendlyResponse
-    }
+    return error instanceof CustomError ? error.friendlyResponse : new CustomError('System', 1000, 500, { issues: (error as Error).message }).friendlyResponse
   }
 }
