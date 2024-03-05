@@ -56,7 +56,7 @@ export const System: Record<number, ErrorType> = {
   5004: {
     classId: 'System',
     code: 5004,
-    statusCode: 500,
+    statusCode: 404,
     message: {
       en_US: 'Instance with id {{instanceId}} does not exist in class {{classId}}',
       tr_TR: '{{classId}} sınıfında idsi {{instanceId}} olan instance bulunamadı',

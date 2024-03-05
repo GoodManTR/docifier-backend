@@ -27,7 +27,8 @@ export async function setFile(file: SetFileInput): Promise<SetFileOutput> {
 
     success = isSuccess(setFileResponse.$metadata.httpStatusCode)
   } catch (error) {
-    ;(success = false), (fileError = error)
+    success = false
+    fileError = error
   }
 
   return {
@@ -53,6 +54,7 @@ export async function getFile(file: GetFileInput): Promise<GetFileOutput> {
     data = success ? await getFileResponse.Body?.transformToString() : undefined
   } catch (error) {
     success = false
+    fileError = error
   }
 
   return {

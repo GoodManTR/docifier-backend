@@ -6,10 +6,11 @@ import { Data, Template } from '../models/data.model'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { BatchGetCommand, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { GENERAL_TABLE } from '../constants'
-import { isSuccess } from '../helpers'
+import { isSuccess, runFunction } from '../helpers'
 import { handleJobs } from '../archives/job.archive'
 import { chunk } from 'lodash'
 import { deleteFromReferenceKeyTable, getReferenceKeys } from 'core/archives/reference.archive'
+import { runFunctionEnum } from 'core/models/call.model'
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
@@ -22,13 +23,6 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
   const { classId, body, referenceKey, queryStringParams, context } = input
   let instanceId = input.instanceId
 
-  let res: GetInstanceOutput = {
-    statusCode: 200,
-    body: {},
-    headers: undefined,
-    info: undefined,
-  }
-  
   if (!instanceId && referenceKey) {
     const get = await getReferenceKey({
       classId,
@@ -65,105 +59,26 @@ export const getInstance = async (input: GetInstanceInput): Promise<GetInstanceO
     jobs: [],
   }
 
-  const templateFilePath = `project/classes/${classId}/template.yml`
-  const fileContents = await fs.readFile(templateFilePath, 'utf8')
-  const templateContent = yaml.load(fileContents) as Template
+  const responseData = await runFunction({
+    classId,
+    instanceId,
+    data,
+    type: runFunctionEnum.Enum.instance,
+  })
 
-  // getInstanceId
-  const [instanceIdMethodFile, instanceIdMethod] = templateContent.getInstanceId.split('.')
-  const instanceIdMethodRequiredModule = require(`../../project/classes/${classId}/${instanceIdMethodFile}.js`)
-
-  const instanceIdHandler = instanceIdMethodRequiredModule[instanceIdMethod]
-  const responseInstanceId = await instanceIdHandler(data)
-
-  const lastInstanceId = instanceId ?? responseInstanceId
-
-  data.context.instanceId = lastInstanceId
-
-  const instanceExists = await checkInstance(classId, lastInstanceId)
-
-  // get
-  if (instanceExists) {
-    if (!templateContent.get) {
-      return {
-        statusCode: 200,
-        body: {},
-        info: {
-          isNewInstance: false,
-          instanceId: lastInstanceId
-        }
-      }
-    }
-
-    data.state = await fetchStateFromS3(classId, lastInstanceId)
-
-    const [getMethodFile, getMethod] = templateContent.get.split('.')
-    const getMethodRequiredModule = require(`../../project/classes/${classId}/${getMethodFile}.js`)
-    const getHandler = getMethodRequiredModule[getMethod]
-
-    const responseData = await getHandler(data)
-
-    await putState(classId, lastInstanceId, responseData.state)
-
-    await handleJobs(responseData.jobs, responseData.context)
-
-    res = {
-      statusCode: responseData.response.statusCode,
-      headers: responseData.response.headers,
-      body: JSON.parse(responseData.response.body),
-      info: {
-        isNewInstance: false,
-        instanceId: lastInstanceId
-      }
-    }
-
-    return res
-  }
-
-  if (instanceId) {
-    res = {
-      statusCode: 404,
-      body: `Instance with id ${instanceId} does not exist in class ${classId}`,
-      headers: undefined,
-    }
-    return res
-  }
-
-  if (!templateContent.init) {
-    res = {
-      statusCode: 500,
-      body: `Init method is not defined in template.yml`,
-      headers: undefined,
-    }
-    return res
-  }
-
-  // init
-  data.context.methodName = 'INIT'
-
-  const [initMethodFile, initMethod] = templateContent.init.split('.')
-  const initMethodRequiredModule = require(`../../project/classes/${classId}/${initMethodFile}.js`)
-  const initHandler = initMethodRequiredModule[initMethod]
-
-  const responseData = await initHandler(data)
-
-  await putState(classId, responseInstanceId, responseData.state)
-
-  await handleJobs(responseData.jobs, responseData.context)
-
-  res = {
-    statusCode: responseData.response.statusCode,
-    headers: responseData.response.headers,
-    body: JSON.parse(responseData.response.body),
+  const responseBody = JSON.parse(responseData.body)
+  
+  return {
+    ...responseData.response,
+    body: responseBody.response,
     info: {
-      isNewInstance: true,
-      instanceId: lastInstanceId
+      isNewInstance: responseBody.isNewInstance,
+      instanceId: responseBody.instanceId
     }
   }
-
-  return res
 }
 
+// TODO:
 export async function deleteInstance(input: DeleteInstanceInput): Promise<void> {
   const lookUpKeys = await Promise.allSettled(await getReferenceKeys(input)).then((results) =>
     results

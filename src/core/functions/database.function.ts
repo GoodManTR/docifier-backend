@@ -21,55 +21,81 @@ function extractSortKeyFromSecondaryKey(secondaryKey: string, partKey: string): 
   return secondaryKey.split('#').slice(partKeyPartCount).join('#')
 }
 
-function getDatabaseSecondaryKeyFromItem(item: { partKey: string, sortKey: string }): string {
-      const { partKey, sortKey } = item
-      return getDatabaseSecondaryKey(partKey, sortKey)
+function getDatabaseSecondaryKeyFromItem(item: { partKey: string; sortKey: string }): string {
+  const { partKey, sortKey } = item
+  return getDatabaseSecondaryKey(partKey, sortKey)
 }
 
 export const readDatabase = async (input: ReadDatabaseOperation) => {
-  const dynamoReq = await dynamo.send(
-    new GetCommand({
-      TableName: GENERAL_TABLE,
-      Key: {
-        part: getDatabasePrimaryKey(input),
-        sort: getDatabaseSecondaryKeyFromItem(input),
-      },
-    }),
-  )
-
-  return dynamoReq
+  try {
+    const dynamoReq = await dynamo.send(
+      new GetCommand({
+        TableName: GENERAL_TABLE,
+        Key: {
+          part: getDatabasePrimaryKey(input),
+          sort: getDatabaseSecondaryKeyFromItem(input),
+        },
+      }),
+    )
+  
+    return {
+      success: isSuccess(dynamoReq.$metadata.httpStatusCode),
+      data: dynamoReq.Item?.data,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error,
+    }
+  }
 }
 
 export const writeToDatabase = async (input: WriteToDatabaseOperation) => {
-  const dynamoReq = await dynamo.send(
-    new PutCommand({
-      TableName: GENERAL_TABLE,
-      Item: {
-        part: getDatabasePrimaryKey(input),
-        sort: getDatabaseSecondaryKeyFromItem(input),
-        data: input.data,
-        expiresAt: input.expireAt,
-      },
-    }),
-  )
+  try {
+    const dynamoReq = await dynamo.send(
+      new PutCommand({
+        TableName: GENERAL_TABLE,
+        Item: {
+          part: getDatabasePrimaryKey(input),
+          sort: getDatabaseSecondaryKeyFromItem(input),
+          data: input.data,
+          expiresAt: input.expireAt,
+        },
+      }),
+    )
 
-  return {
+    return {
       success: isSuccess(dynamoReq.$metadata.httpStatusCode),
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error,
+    }
   }
 }
 
 export const removeFromDatabase = async (input: RemoveFromDatabaseOperation) => {
-  const dynamoReq = await dynamo.send(
-    new DeleteCommand({
-      TableName: GENERAL_TABLE,
-      Key: {
-        part: getDatabasePrimaryKey(input),
-        sort: getDatabaseSecondaryKeyFromItem(input),
-      },
-    }),
-  )
+  try {
+    const dynamoReq = await dynamo.send(
+      new DeleteCommand({
+        TableName: GENERAL_TABLE,
+        Key: {
+          part: getDatabasePrimaryKey(input),
+          sort: getDatabaseSecondaryKeyFromItem(input),
+        },
+      }),
+    )
 
-  return dynamoReq
+    return {
+      success: isSuccess(dynamoReq.$metadata.httpStatusCode),
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error,
+    }
+  }
 }
 
 export const queryDatabase = async (input: QueryDatabaseOperation) => {
@@ -111,7 +137,7 @@ export const queryDatabase = async (input: QueryDatabaseOperation) => {
   }
   return dynamo.send(new QueryCommand(queryInput)).then((r) => {
     return {
-      success: true,
+      success: isSuccess(r.$metadata.httpStatusCode),
       data: {
         items: r.Items?.map((i) => ({
           partKey: input.partKey,
@@ -120,6 +146,11 @@ export const queryDatabase = async (input: QueryDatabaseOperation) => {
         })),
         nextToken: r.LastEvaluatedKey?.sort,
       },
+    }
+  }).catch((error) => {
+    return {
+      success: false,
+      error,
     }
   })
 }

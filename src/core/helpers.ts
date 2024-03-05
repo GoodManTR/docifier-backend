@@ -67,7 +67,16 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
 
     return responseData
   } else if (type === runFunctionEnum.Enum.instance) {
-    const instanceExists = await checkInstance(classId, instanceId)
+    const [instanceIdMethodFile, instanceIdMethod] = templateContent.getInstanceId.split('.')
+    const instanceIdMethodRequiredModule = require(`../project/classes/${classId}/${instanceIdMethodFile}.js`)
+  
+    const instanceIdHandler = instanceIdMethodRequiredModule[instanceIdMethod]
+    const responseInstanceId = await instanceIdHandler(data)
+
+    const lastInstanceId = instanceId ?? responseInstanceId
+
+    data.context.instanceId = lastInstanceId
+    const instanceExists = await checkInstance(classId, lastInstanceId)
 
     if (instanceExists) {
       if (!templateContent.get) {
@@ -83,9 +92,16 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
           }),
         }
       }
+      
+      const isConcurrencyLcoked = await isConcurrencyLocked({ classId, instanceId: lastInstanceId! })
+      if (isConcurrencyLcoked) {
+        throw new CustomError({ error: Errors.System[5005], params: { instanceId: lastInstanceId!, classId } })
+      }
+
+      await lockConcurrency({ classId, instanceId: lastInstanceId! })
 
       data.context.methodName = 'GET'
-      data.state = await fetchStateFromS3(classId, instanceId!)
+      data.state = await fetchStateFromS3(classId, lastInstanceId!)
 
       const [getMethodFile, getMethod] = templateContent.get.split('.')
       const getMethodRequiredModule = require(`../project/classes/${classId}/${getMethodFile}.js`)
@@ -93,8 +109,9 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
 
       const responseData = await getHandler(data)
 
-      await putState(classId, instanceId!, responseData.state)
+      await putState(classId, lastInstanceId!, responseData.state)
       await handleJobs(responseData.jobs, responseData.context)
+      await unlockConcurrency({ classId, instanceId: lastInstanceId! })
 
       return {
         statusCode: responseData.response.statusCode,
@@ -120,6 +137,13 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
       throw new CustomError({ error: Errors.System[5006] })
     }
 
+    const isConcurrencyLcoked = await isConcurrencyLocked({ classId, instanceId: lastInstanceId! })
+    if (isConcurrencyLcoked) {
+      throw new CustomError({ error: Errors.System[5005], params: { instanceId: lastInstanceId!, classId } })
+    }
+
+    await lockConcurrency({ classId, instanceId: lastInstanceId! })
+
     data.context.methodName = 'INIT'
 
     const [initMethodFile, initMethod] = templateContent.init.split('.')
@@ -128,8 +152,9 @@ export const runFunction = async ({ classId, instanceId, methodName, data, type 
 
     const responseData = await initHandler(data)
 
-    await putState(classId, instanceId!, responseData.state)
+    await putState(classId, lastInstanceId, responseData.state)
     await handleJobs(responseData.jobs, responseData.context)
+    await unlockConcurrency({ classId, instanceId: lastInstanceId! })
     
     return {
       statusCode: responseData.response.statusCode,
